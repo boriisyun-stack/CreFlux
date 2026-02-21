@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+async function testCORS() {
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:5173',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'content-type,authorization'
+      }
+    });
+    console.log("Gemini CORS OPTIONS status:", res.status);
+    document.body.innerHTML += `<p>Gemini CORS: ${res.status}</p>`;
+
+    const authRes = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer DUMMY'
+      },
+      body: JSON.stringify({model:"gemini-1.5-flash", messages:[{role:"user", content:"hi"}]})
+    });
+    console.log("Gemini auth status:", authRes.status);
+    document.body.innerHTML += `<p>Gemini POST: ${authRes.status}</p>`;
+  } catch(e) {
+    document.body.innerHTML += `<p>Error: ${e.message}</p>`;
+  }
+}
+testCORS();
+</script>
+</body>
+</html>
