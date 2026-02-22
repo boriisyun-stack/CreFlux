@@ -505,7 +505,7 @@ const ToggleHeader = styled('div', {
   variants: {
     open: {
       true: {
-        transform: 'translateY(6px)',
+        transform: 'translateY(40%)',
       },
       false: {
         transform: 'translateY(0)',
