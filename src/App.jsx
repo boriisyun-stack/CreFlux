@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { generateIdeas, evaluateIdeasBatch, enhancePrompt } from './lib/openai';
-import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices } from 'lucide-react';
+import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices, X, SlidersHorizontal } from 'lucide-react';
 import { styled, globalStyles, keyframes } from './stitches.config';
 import { getRandomPrompt } from './lib/prompts';
 
@@ -302,6 +302,21 @@ const IdeaTitle = styled('h3', {
   lineHeight: 1.4,
 });
 
+const DEFAULT_COPY_FORMAT = `[{title}]
+{idea}
+
+Reasoning: {reasoning}
+Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}`;
+
+const COPY_VARIABLES = [
+  { key: '{title}', desc: '아이디어 제목' },
+  { key: '{idea}', desc: '아이디어 내용' },
+  { key: '{syntax}', desc: '구문 점수' },
+  { key: '{feasibility}', desc: '실현 가능성 점수' },
+  { key: '{relevance}', desc: '관련성 점수' },
+  { key: '{reasoning}', desc: '평가 이유' },
+];
+
 const pulse = keyframes({
   '0%, 100%': { opacity: 1 },
   '50%': { opacity: 0.5 }
@@ -494,6 +509,124 @@ const Reasoning = styled('div', {
   textAlign: 'center',
 });
 
+// --- Settings Modal Styles ---
+const ModalOverlay = styled('div', {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  background: 'rgba(0, 0, 0, 0.5)',
+  backdropFilter: 'blur(4px)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 9999,
+  animation: `${slideUp} 0.2s ease`,
+});
+
+const ModalContent = styled('div', {
+  background: '$surface',
+  backdropFilter: 'blur(16px)',
+  border: '1px solid $border',
+  borderRadius: '$7',
+  padding: '$5',
+  width: '90%',
+  maxWidth: '520px',
+  maxHeight: '80vh',
+  overflowY: 'auto',
+  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+  position: 'relative',
+  '& h3': {
+    fontSize: '$5',
+    fontWeight: 700,
+    marginBottom: '$3',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '$2',
+  },
+});
+
+const ModalCloseBtn = styled('button', {
+  position: 'absolute',
+  top: '$3',
+  right: '$3',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  color: '$textMuted',
+  borderRadius: '$round',
+  padding: '$1',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    color: '$text',
+    background: 'rgba(0,0,0,0.05)',
+  },
+});
+
+const ModalTextarea = styled('textarea', {
+  width: '100%',
+  minHeight: '120px',
+  background: 'rgba(255, 255, 255, 0.8)',
+  border: '1px solid $border',
+  color: '$text',
+  padding: '0.8rem 1.2rem',
+  borderRadius: '$4',
+  fontFamily: 'monospace',
+  fontSize: '$2',
+  resize: 'vertical',
+  outline: 'none',
+  lineHeight: 1.6,
+  transition: 'border-color 0.3s ease',
+  '&:focus': {
+    borderColor: '$secondary',
+    boxShadow: '0 0 0 2px $colors$border',
+  },
+});
+
+const VariableTag = styled('code', {
+  display: 'inline-block',
+  background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.1), rgba(58, 134, 255, 0.1))',
+  color: '$primary',
+  padding: '2px 8px',
+  borderRadius: '$2',
+  fontSize: '0.75rem',
+  fontWeight: 600,
+  fontFamily: 'monospace',
+  border: '1px solid rgba(255, 0, 110, 0.15)',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.2), rgba(58, 134, 255, 0.2))',
+    transform: 'scale(1.05)',
+  },
+});
+
+const VariableList = styled('div', {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '$2',
+  marginTop: '$2',
+  marginBottom: '$3',
+});
+
+const SettingsGearBtn = styled('button', {
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  color: '$textMuted',
+  padding: '$1',
+  borderRadius: '$round',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    color: '$primary',
+    transform: 'rotate(45deg)',
+  },
+});
+
 const ToggleHeader = styled('div', {
   display: 'flex',
   justifyContent: 'space-between',
@@ -567,6 +700,12 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(true);
   const [showGenerate, setShowGenerate] = useState(true);
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
+  const [showCopySettings, setShowCopySettings] = useState(false);
+  const [copyFormat, setCopyFormat] = useState(() => {
+    try {
+      return localStorage.getItem('creflux_copy_format') || DEFAULT_COPY_FORMAT;
+    } catch { return DEFAULT_COPY_FORMAT; }
+  });
 
   const handleProviderChange = (e) => {
     const newProv = e.target.value;
@@ -640,221 +779,280 @@ export default function App() {
 
 
   const handleCopy = useCallback((item, index) => {
-    const copyText = `${item.title ? `[${item.title}]\n` : ''}${item.idea}\n\nReasoning: ${item.evaluation.reasoning}\nSyntax: ${item.evaluation.syntax} | Feasibility: ${item.evaluation.feasibility} | Relevance: ${item.evaluation.relevance}`;
+    const copyText = copyFormat
+      .replace(/\{title\}/g, item.title || '')
+      .replace(/\{idea\}/g, item.idea || '')
+      .replace(/\{syntax\}/g, String(item.evaluation?.syntax || 0))
+      .replace(/\{feasibility\}/g, String(item.evaluation?.feasibility || 0))
+      .replace(/\{relevance\}/g, String(item.evaluation?.relevance || 0))
+      .replace(/\{reasoning\}/g, item.evaluation?.reasoning || '');
     try {
       navigator.clipboard.writeText(copyText);
     } catch (e) {
-      // Clipboard API may fail in insecure contexts (non-HTTPS)
       console.warn('Clipboard write failed:', e);
     }
     setCopiedId(index);
     setTimeout(() => setCopiedId(null), 2000);
-  }, []);
+  }, [copyFormat]);
+
+  const handleCopyFormatChange = (val) => {
+    setCopyFormat(val);
+    try { localStorage.setItem('creflux_copy_format', val); } catch { }
+  };
 
   return (
-    <RootContainer>
-      <AppContainer>
-        <StickyHeader>
-          <Header>
-            <h1>CreFlux</h1>
-            <p>
-              Make your idea with AI's hallucination
-            </p>
-          </Header>
+    <>
+      <RootContainer>
+        <AppContainer>
+          <StickyHeader>
+            <Header>
+              <h1>CreFlux</h1>
+              <p>
+                Make your idea with AI's hallucination
+                <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
+                  <SlidersHorizontal size={18} />
+                </SettingsGearBtn>
+              </p>
+            </Header>
 
-          <ToggleBody open={isHeaderOpen}>
-            <div>
-              <PanelsSplit>
-                <GlassPanel open={showSettings}>
-                  <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
-                    <h2><Settings size={20} /> AI Configuration</h2>
-                    {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                  </ToggleHeader>
+            <ToggleBody open={isHeaderOpen}>
+              <div>
+                <PanelsSplit>
+                  <GlassPanel open={showSettings}>
+                    <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
+                      <h2><Settings size={20} /> AI Configuration</h2>
+                      {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                    </ToggleHeader>
 
-                  <ToggleBody open={showSettings}>
-                    <div>
-                      <FormGroup>
-                        <Label>AI Provider</Label>
-                        <Select value={provider} onChange={handleProviderChange}>
-                          {Object.entries(PROVIDERS).map(([key, data]) => (
-                            <option key={key} value={key}>{data.name}</option>
-                          ))}
-                        </Select>
-                      </FormGroup>
-
-                      <FormRow>
+                    <ToggleBody open={showSettings}>
+                      <div>
                         <FormGroup>
-                          <Label>API Key</Label>
+                          <Label>AI Provider</Label>
+                          <Select value={provider} onChange={handleProviderChange}>
+                            {Object.entries(PROVIDERS).map(([key, data]) => (
+                              <option key={key} value={key}>{data.name}</option>
+                            ))}
+                          </Select>
+                        </FormGroup>
+
+                        <FormRow>
+                          <FormGroup>
+                            <Label>API Key</Label>
+                            <Input
+                              type="password"
+                              placeholder="Enter API Key"
+                              value={apiKey}
+                              onChange={(e) => setApiKey(e.target.value)}
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                            <Label>Model Name</Label>
+                            <Input
+                              type="text"
+                              placeholder="e.g. gpt-4o"
+                              value={model}
+                              onChange={(e) => setModel(e.target.value)}
+                            />
+                          </FormGroup>
+                        </FormRow>
+
+                        <FormGroup>
+                          <Label>Base URL (Optional override)</Label>
                           <Input
-                            type="password"
-                            placeholder="Enter API Key"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
+                            type="url"
+                            placeholder="https://api.openai.com/v1"
+                            value={baseURL}
+                            onChange={(e) => setBaseURL(e.target.value)}
+                            disabled={provider !== 'custom'}
                           />
                         </FormGroup>
+
                         <FormGroup>
-                          <Label>Model Name</Label>
-                          <Input
-                            type="text"
-                            placeholder="e.g. gpt-4o"
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                          />
+                          <SliderContainer>
+                            <SliderHeader>
+                              <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
+                              <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
+                            </SliderHeader>
+                            <SliderInput
+                              type="range"
+                              min="0"
+                              max="4"
+                              step="1"
+                              value={sliderIndex}
+                              onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
+                            />
+                          </SliderContainer>
                         </FormGroup>
-                      </FormRow>
+                      </div>
+                    </ToggleBody>
+                  </GlassPanel>
 
-                      <FormGroup>
-                        <Label>Base URL (Optional override)</Label>
-                        <Input
-                          type="url"
-                          placeholder="https://api.openai.com/v1"
-                          value={baseURL}
-                          onChange={(e) => setBaseURL(e.target.value)}
-                          disabled={provider !== 'custom'}
-                        />
-                      </FormGroup>
+                  <GlassPanel open={showGenerate}>
+                    <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
+                      <h2><Sparkles size={20} /> Generate Ideas</h2>
+                      {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                    </ToggleHeader>
 
-                      <FormGroup>
-                        <SliderContainer>
-                          <SliderHeader>
-                            <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
-                            <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
-                          </SliderHeader>
-                          <SliderInput
-                            type="range"
-                            min="0"
-                            max="4"
-                            step="1"
-                            value={sliderIndex}
-                            onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
+                    <ToggleBody open={showGenerate}>
+                      <div>
+                        <FormGroup style={{ position: 'relative' }}>
+                          <Textarea
+                            placeholder="Enter a problem, topic, or seed. Example: 'How to revolutionize public transport' or 'A new way to eat soup'"
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
                           />
-                        </SliderContainer>
-                      </FormGroup>
-                    </div>
-                  </ToggleBody>
-                </GlassPanel>
+                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
+                            <Dices size={18} />
+                          </RandomPromptBtn>
+                        </FormGroup>
 
-                <GlassPanel open={showGenerate}>
-                  <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
-                    <h2><Sparkles size={20} /> Generate Ideas</h2>
-                    {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                  </ToggleHeader>
-
-                  <ToggleBody open={showGenerate}>
-                    <div>
-                      <FormGroup style={{ position: 'relative' }}>
-                        <Textarea
-                          placeholder="Enter a problem, topic, or seed. Example: 'How to revolutionize public transport' or 'A new way to eat soup'"
-                          value={prompt}
-                          onChange={(e) => setPrompt(e.target.value)}
-                        />
-                        <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
-                          <Dices size={18} />
-                        </RandomPromptBtn>
-                      </FormGroup>
-
-                      {error && (
-                        <ErrorMessage>
-                          <AlertCircle size={20} />
-                          <span>{error}</span>
-                        </ErrorMessage>
-                      )}
-
-                      <Button
-                        onClick={handleGenerate}
-                        disabled={isGenerating}
-                      >
-                        {isGenerating ? (
-                          <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
-                        ) : (
-                          <><Sparkles size={20} /> Ignite Imagination</>
+                        {error && (
+                          <ErrorMessage>
+                            <AlertCircle size={20} />
+                            <span>{error}</span>
+                          </ErrorMessage>
                         )}
-                      </Button>
-                    </div>
-                  </ToggleBody>
-                </GlassPanel>
-              </PanelsSplit>
-            </div>
-          </ToggleBody>
 
-          <MasterToggleBtn onClick={() => setIsHeaderOpen(!isHeaderOpen)}>
-            {isHeaderOpen ? (
-              <><ChevronUp size={20} /> Hide Configuration</>
-            ) : (
-              <><ChevronDown size={20} /> Show Configuration</>
+                        <Button
+                          onClick={handleGenerate}
+                          disabled={isGenerating}
+                        >
+                          {isGenerating ? (
+                            <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
+                          ) : (
+                            <><Sparkles size={20} /> Ignite Imagination</>
+                          )}
+                        </Button>
+                      </div>
+                    </ToggleBody>
+                  </GlassPanel>
+                </PanelsSplit>
+              </div>
+            </ToggleBody>
+
+            <MasterToggleBtn onClick={() => setIsHeaderOpen(!isHeaderOpen)}>
+              {isHeaderOpen ? (
+                <><ChevronUp size={20} /> Hide Configuration</>
+              ) : (
+                <><ChevronDown size={20} /> Show Configuration</>
+              )}
+            </MasterToggleBtn>
+          </StickyHeader>
+
+          <main>
+            {isGenerating && (
+              <LoadingStateContainer>
+                <LargeLoader><Sparkles size={48} /></LargeLoader>
+                <h3>Spawning Ideas...</h3>
+                <p>{generationStep}</p>
+              </LoadingStateContainer>
             )}
-          </MasterToggleBtn>
-        </StickyHeader>
 
-        <main>
-          {isGenerating && (
-            <LoadingStateContainer>
-              <LargeLoader><Sparkles size={48} /></LargeLoader>
-              <h3>Spawning Ideas...</h3>
-              <p>{generationStep}</p>
-            </LoadingStateContainer>
-          )}
+            {!isGenerating && results.length > 0 && (
+              <IdeasList>
+                {results.map((item, index) => (
+                  <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                    <CopyButton onClick={() => handleCopy(item, index)} title="Copy Idea">
+                      {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
+                    </CopyButton>
+                    {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
+                    <IdeaContent>
+                      {item.idea}
+                    </IdeaContent>
+                    <IdeaMetrics>
+                      <Metric>
+                        <MetricLabel>Syntax</MetricLabel>
+                        <MetricValue color={getScoreColor(item.evaluation.syntax)}>
+                          {item.evaluation.syntax || 0}
+                        </MetricValue>
+                        <ProgressBarBg>
+                          <ProgressBarFill
+                            color={getScoreColor(item.evaluation.syntax)}
+                            style={{ width: `${item.evaluation.syntax || 0}%` }}
+                          />
+                        </ProgressBarBg>
+                      </Metric>
+                      <Metric>
+                        <MetricLabel>Feasibility</MetricLabel>
+                        <MetricValue color={getScoreColor(item.evaluation.feasibility)}>
+                          {item.evaluation.feasibility || 0}
+                        </MetricValue>
+                        <ProgressBarBg>
+                          <ProgressBarFill
+                            color={getScoreColor(item.evaluation.feasibility)}
+                            style={{ width: `${item.evaluation.feasibility || 0}%` }}
+                          />
+                        </ProgressBarBg>
+                      </Metric>
+                      <Metric>
+                        <MetricLabel>Relevance</MetricLabel>
+                        <MetricValue color={getScoreColor(item.evaluation.relevance)}>
+                          {item.evaluation.relevance || 0}
+                        </MetricValue>
+                        <ProgressBarBg>
+                          <ProgressBarFill
+                            color={getScoreColor(item.evaluation.relevance)}
+                            style={{ width: `${item.evaluation.relevance || 0}%` }}
+                          />
+                        </ProgressBarBg>
+                      </Metric>
+                    </IdeaMetrics>
+                    {item.evaluation.reasoning && (
+                      <Reasoning>
+                        "{item.evaluation.reasoning}"
+                      </Reasoning>
+                    )}
+                  </IdeaCard>
+                ))}
+              </IdeasList>
+            )}
+          </main>
+        </AppContainer>
+      </RootContainer>
 
-          {!isGenerating && results.length > 0 && (
-            <IdeasList>
-              {results.map((item, index) => (
-                <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CopyButton onClick={() => handleCopy(item, index)} title="Copy Idea">
-                    {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
-                  </CopyButton>
-                  {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
-                  <IdeaContent>
-                    {item.idea}
-                  </IdeaContent>
-                  <IdeaMetrics>
-                    <Metric>
-                      <MetricLabel>Syntax</MetricLabel>
-                      <MetricValue color={getScoreColor(item.evaluation.syntax)}>
-                        {item.evaluation.syntax || 0}
-                      </MetricValue>
-                      <ProgressBarBg>
-                        <ProgressBarFill
-                          color={getScoreColor(item.evaluation.syntax)}
-                          style={{ width: `${item.evaluation.syntax || 0}%` }}
-                        />
-                      </ProgressBarBg>
-                    </Metric>
-                    <Metric>
-                      <MetricLabel>Feasibility</MetricLabel>
-                      <MetricValue color={getScoreColor(item.evaluation.feasibility)}>
-                        {item.evaluation.feasibility || 0}
-                      </MetricValue>
-                      <ProgressBarBg>
-                        <ProgressBarFill
-                          color={getScoreColor(item.evaluation.feasibility)}
-                          style={{ width: `${item.evaluation.feasibility || 0}%` }}
-                        />
-                      </ProgressBarBg>
-                    </Metric>
-                    <Metric>
-                      <MetricLabel>Relevance</MetricLabel>
-                      <MetricValue color={getScoreColor(item.evaluation.relevance)}>
-                        {item.evaluation.relevance || 0}
-                      </MetricValue>
-                      <ProgressBarBg>
-                        <ProgressBarFill
-                          color={getScoreColor(item.evaluation.relevance)}
-                          style={{ width: `${item.evaluation.relevance || 0}%` }}
-                        />
-                      </ProgressBarBg>
-                    </Metric>
-                  </IdeaMetrics>
-                  {item.evaluation.reasoning && (
-                    <Reasoning>
-                      "{item.evaluation.reasoning}"
-                    </Reasoning>
-                  )}
-                </IdeaCard>
-              ))}
-            </IdeasList>
-          )}
-        </main>
-      </AppContainer>
-    </RootContainer>
+      {
+        showCopySettings && (
+          <ModalOverlay onClick={() => setShowCopySettings(false)}>
+            <ModalContent onClick={(e) => e.stopPropagation()}>
+              <ModalCloseBtn onClick={() => setShowCopySettings(false)}>
+                <X size={20} />
+              </ModalCloseBtn>
+              <h3><SlidersHorizontal size={20} /> Copy Format</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', marginBottom: '0.5rem' }}>
+                아이디어를 복사할 때 사용할 형식을 커스텀하세요. 아래 변수를 사용할 수 있습니다:
+              </p>
+              <VariableList>
+                {COPY_VARIABLES.map(v => (
+                  <VariableTag key={v.key} title={v.desc}>{v.key}</VariableTag>
+                ))}
+              </VariableList>
+              <ModalTextarea
+                value={copyFormat}
+                onChange={(e) => handleCopyFormatChange(e.target.value)}
+                placeholder={DEFAULT_COPY_FORMAT}
+              />
+              <p style={{ fontSize: '0.75rem', color: 'var(--colors-textMuted)', marginTop: '0.5rem' }}>
+                줄바꿈도 그대로 반영됩니다. 변수 사이에 텍스트를 자유롭게 넣으세요.
+              </p>
+              <button
+                onClick={() => handleCopyFormatChange(DEFAULT_COPY_FORMAT)}
+                style={{
+                  marginTop: '0.75rem',
+                  background: 'transparent',
+                  border: '1px solid var(--colors-border)',
+                  borderRadius: '999px',
+                  padding: '0.4rem 1rem',
+                  fontSize: '0.8rem',
+                  color: 'var(--colors-textMuted)',
+                  cursor: 'pointer',
+                }}
+              >
+                Reset to Default
+              </button>
+            </ModalContent>
+          </ModalOverlay>
+        )
+      }
+    </>
   );
 }
