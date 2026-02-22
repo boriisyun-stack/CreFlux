@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { generateIdeas, evaluateIdeasBatch, enhancePrompt } from './lib/openai';
-import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices, X, SlidersHorizontal } from 'lucide-react';
+import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices, X, SlidersHorizontal, Volume2 } from 'lucide-react';
 import { styled, globalStyles, keyframes } from './stitches.config';
 import { getRandomPrompt } from './lib/prompts';
 
@@ -316,6 +316,85 @@ const COPY_VARIABLES = [
   { key: '{relevance}', desc: '관련성 점수' },
   { key: '{reasoning}', desc: '평가 이유' },
 ];
+
+const SOUND_TYPES = [
+  { key: 'ding', name: '띨롱!' },
+  { key: 'dingdong', name: '딩동' },
+  { key: 'chime', name: '뾰로롱' },
+  { key: 'tada', name: '짠!' },
+  { key: 'bell', name: '벨소리' },
+  { key: 'none', name: '소리 없음' },
+];
+
+function playSound(type, volume) {
+  if (type === 'none' || volume <= 0) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    gain.gain.value = volume;
+
+    if (type === 'ding') {
+      // 띨롱: two rising tones
+      [880, 1108].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        osc.start(ctx.currentTime + i * 0.15);
+        osc.stop(ctx.currentTime + i * 0.15 + 0.2);
+      });
+    } else if (type === 'dingdong') {
+      // 딩동: classic two-tone
+      [660, 523].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        osc.start(ctx.currentTime + i * 0.25);
+        osc.stop(ctx.currentTime + i * 0.25 + 0.3);
+      });
+    } else if (type === 'chime') {
+      // 뾰로롱: ascending sparkle
+      [523, 659, 784, 1047].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        const g = ctx.createGain();
+        g.gain.value = volume * (1 - i * 0.2);
+        osc.connect(g).connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.1);
+        osc.stop(ctx.currentTime + i * 0.1 + 0.15);
+      });
+    } else if (type === 'tada') {
+      // 짠!: triumphant chord
+      [523, 659, 784].forEach((freq) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(volume * 0.3, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.connect(g).connect(ctx.destination);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.5);
+      });
+    } else if (type === 'bell') {
+      // 벨소리: bell-like tone
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 830;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(volume, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc.connect(g).connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.8);
+    }
+  } catch (e) {
+    console.warn('Sound playback failed:', e);
+  }
+}
 
 const pulse = keyframes({
   '0%, 100%': { opacity: 1 },
@@ -710,6 +789,12 @@ export default function App() {
       return localStorage.getItem('creflux_copy_format') || DEFAULT_COPY_FORMAT;
     } catch { return DEFAULT_COPY_FORMAT; }
   });
+  const [soundType, setSoundType] = useState(() => {
+    try { return localStorage.getItem('creflux_sound_type') || 'ding'; } catch { return 'ding'; }
+  });
+  const [soundVolume, setSoundVolume] = useState(() => {
+    try { return parseFloat(localStorage.getItem('creflux_sound_volume') ?? '0.5'); } catch { return 0.5; }
+  });
 
   const handleProviderChange = (e) => {
     const newProv = e.target.value;
@@ -759,6 +844,9 @@ export default function App() {
       // Evaluate the batch of 100 ideas in one API call
       const evaluatedIdeas = await evaluateIdeasBatch(providerConfig, prompt, rawIdeas);
       setResults(evaluatedIdeas);
+
+      // Play completion sound
+      playSound(soundType, soundVolume);
 
       // Auto-collapse panels to show ideas taking full screen
       setShowGenerate(false);
@@ -1054,6 +1142,52 @@ export default function App() {
               >
                 Reset to Default
               </button>
+
+              <hr style={{ border: 'none', borderTop: '1px solid var(--colors-border)', margin: '1.5rem 0' }} />
+
+              <h3><Volume2 size={20} /> Notification Sound</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+                    소리 종류
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    {SOUND_TYPES.map(s => (
+                      <button
+                        key={s.key}
+                        onClick={() => { setSoundType(s.key); try { localStorage.setItem('creflux_sound_type', s.key); } catch { } if (s.key !== 'none') playSound(s.key, soundVolume); }}
+                        style={{
+                          padding: '0.35rem 0.75rem',
+                          borderRadius: '999px',
+                          border: soundType === s.key ? '2px solid #FF006E' : '1px solid var(--colors-border)',
+                          background: soundType === s.key ? 'rgba(255, 0, 110, 0.1)' : 'transparent',
+                          color: soundType === s.key ? '#FF006E' : 'var(--colors-textMuted)',
+                          fontWeight: soundType === s.key ? 700 : 400,
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+                    볼륨: {Math.round(soundVolume * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={soundVolume}
+                    onChange={(e) => { const v = parseFloat(e.target.value); setSoundVolume(v); try { localStorage.setItem('creflux_sound_volume', String(v)); } catch { } }}
+                    style={{ width: '100%', accentColor: '#FF006E' }}
+                  />
+                </div>
+              </div>
             </ModalContent>
           </ModalOverlay>
         )
