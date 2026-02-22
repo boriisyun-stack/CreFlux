@@ -12,14 +12,14 @@ export const {
 } = createStitches({
     theme: {
         colors: {
-            primary: '#f72585',    // Vibrant Pink/Magenta
-            secondary: '#4361ee',  // Vibrant Blue
-            background: '#f4f5f7', // Solid light grey background
-            surface: '#ffffff',    // Solid white cards
-            surfaceHover: '#fafafa',
-            border: '#e4e7eb', // Soft light gray borders
-            text: '#374151', // Dark grey for text
-            textMuted: '#9ca3af', // Light grey for labels/placeholders
+            primary: '#FF006E',    // Vibrant Pink
+            secondary: '#3A86FF',  // Vibrant Blue
+            background: '#F8F9FA', // Light grey/white base
+            surface: 'rgba(255, 255, 255, 0.65)', // Light glass surface
+            surfaceHover: 'rgba(255, 255, 255, 0.85)',
+            border: 'rgba(131, 56, 236, 0.2)', // Border with hint of purple (#8338EC)
+            text: '#1A202C',
+            textMuted: '#4A5568',
             success: '#10b981',
             warning: '#f59e0b',
             error: '#ef4444',
@@ -77,6 +77,8 @@ export const globalStyles = globalCss({
         display: 'flex',
         justifyContent: 'center',
         padding: '0',
+        backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(255, 0, 110, 0.15) 0%, transparent 50%), radial-gradient(circle at 85% 30%, rgba(58, 134, 255, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 80%, rgba(255, 190, 11, 0.15) 0%, transparent 50%)',
+        backgroundAttachment: 'fixed',
     },
     'h1, h2, h3, h4': {
         fontFamily: '$heading',
@@ -90,19 +92,19 @@ export const globalStyles = globalCss({
         background: 'transparent',
     },
     '::-webkit-scrollbar-thumb': {
-        background: '#e4e7eb',
+        background: 'rgba(131, 56, 236, 0.25)',
         borderRadius: '9999px',
         border: '2px solid transparent',
         backgroundClip: 'content-box',
     },
     '::-webkit-scrollbar-thumb:hover': {
-        background: '#d1d5db',
+        background: 'linear-gradient(135deg, #FF006E, #3A86FF)',
         borderRadius: '9999px',
         border: '2px solid transparent',
         backgroundClip: 'content-box',
     },
     '*': {
         scrollbarWidth: 'thin',
-        scrollbarColor: '#e4e7eb transparent',
+        scrollbarColor: 'rgba(131, 56, 236, 0.25) transparent',
     },
 });

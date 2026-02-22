@@ -48,51 +48,49 @@ const AppContainer = styled('div', {
 });
 
 const StickyHeader = styled('div', {
-  position: 'relative',
-  width: '120%',
-  marginLeft: '-10%',
+  position: 'sticky',
+  top: '$4', // Floating top
+  zIndex: 100,
+  backgroundColor: 'rgba(248, 249, 250, 0.85)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  width: '120%', // Make the panels block 1.2x wider
+  marginLeft: '-10%', // Center the artificially widened block
   marginRight: '-10%',
   marginBottom: '$5',
+  padding: '$5',
+  borderRadius: '$7', // Fully rounded island
+  border: '1px solid $border',
+  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
   display: 'flex',
   flexDirection: 'column',
   gap: '$4',
   transition: 'all 0.3s ease',
+  paddingBottom: '4rem', // More breathing room for the bottom toggle button
 });
 
 const MasterToggleBtn = styled('button', {
   position: 'absolute',
-  bottom: '-20px', // Shifted lower to stay outside the panel border
+  bottom: '-16px', // Shifted lower to stay outside the panel border
   left: '50%',
   transform: 'translateX(-50%)',
-  background: 'linear-gradient(to right, #f72585, #4361ee)',
+  background: 'linear-gradient(135deg, $primary, $secondary)',
   color: 'white',
   border: 'none',
   borderRadius: '$round',
-  padding: '0.6rem 1.5rem',
+  padding: '$2 $4',
   display: 'flex',
   alignItems: 'center',
   gap: '$2',
   cursor: 'pointer',
-  fontWeight: 700,
-  fontSize: '0.875rem',
+  fontWeight: 600,
+  fontSize: '1rem',
+  boxShadow: '0 4px 15px rgba(255, 0, 110, 0.3)',
   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   zIndex: 10,
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '120%',
-    height: '150%',
-    background: 'linear-gradient(to right, rgba(247, 37, 133, 0.6), rgba(67, 97, 238, 0.6))',
-    filter: 'blur(20px)',
-    zIndex: -1,
-    borderRadius: '$round',
-    pointerEvents: 'none',
-  },
   '&:hover': {
     transform: 'translateX(-50%) scale(1.05)',
+    boxShadow: '0 6px 20px rgba(58, 134, 255, 0.4)',
   },
   '&:active': {
     transform: 'translateX(-50%) scale(0.95)',
@@ -105,28 +103,14 @@ const Header = styled('header', {
   flexDirection: 'column',
   alignItems: 'center',
   marginBottom: '$2',
-  position: 'relative',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: '20%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '180px',
-    height: '60px',
-    background: 'rgba(247, 37, 133, 0.5)',
-    filter: 'blur(35px)',
-    zIndex: -1,
-    borderRadius: '50%',
-    pointerEvents: 'none',
-  },
   '& h1': {
     fontSize: '$8',
     fontWeight: 800,
-    background: 'linear-gradient(135deg, #f72585, #4361ee)',
+    background: 'linear-gradient(135deg, $primary, $secondary)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    marginBottom: '$1',
+    marginBottom: '$2',
+    animation: `${glow} 3s ease-in-out infinite alternate`,
   },
   '& p': {
     color: '$textMuted',
@@ -141,28 +125,39 @@ const Header = styled('header', {
 
 const GlassPanel = styled('section', {
   background: '$surface',
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
   border: '1px solid $border',
-  borderRadius: '16px',
+  borderRadius: '$7', // Mathmatically matches 96px closed height perfect pill
   padding: '$5',
-  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  display: 'flex',
-  flexDirection: 'column',
+  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
+  transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease',
   height: 'auto',
+  overflow: 'hidden', // Prevent inputs from bleeding out due to large border-radius
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 12px 40px 0 rgba(31, 38, 135, 0.15)',
+  },
   '& h2': {
-    fontSize: '1.25rem',
-    fontWeight: 700,
-    color: '$text',
-    marginBottom: '$1',
+    fontSize: '$6',
+    marginBottom: '$4',
     display: 'flex',
     alignItems: 'center',
     gap: '$2',
   },
-  '& > p.subtitle': {
-    fontSize: '0.875rem',
-    color: '$textMuted',
-    marginBottom: '$4',
-    marginTop: 0,
+  variants: {
+    open: {
+      true: {
+        borderRadius: '$7',
+        borderBottomLeftRadius: '$4',
+        borderBottomRightRadius: '$4',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease',
+      },
+      false: {
+        borderRadius: '$7',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease', // Matches grid-template-rows 0.35s collapse
+      }
+    }
   }
 });
 
@@ -191,29 +186,27 @@ const FormRow = styled('div', {
 });
 
 const Label = styled('label', {
-  fontSize: '0.75rem',
+  fontSize: '$2',
   color: '$textMuted',
   fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px',
-  marginBottom: '0.25rem',
 });
 
 const inputShared = {
   width: '100%',
-  boxSizing: 'border-box',
-  background: '#ffffff',
+  boxSizing: 'border-box', // Ensure padding doesn't widen the element beyond 100%
+  background: 'rgba(255, 255, 255, 0.8)',
   border: '1px solid $border',
   color: '$text',
-  padding: '0.8rem 1rem',
-  borderRadius: '12px',
+  padding: '0.8rem 1.2rem',
+  borderRadius: '$round',
   fontFamily: 'inherit',
-  fontSize: '0.875rem',
-  transition: 'all 0.2s ease',
+  fontSize: '$3',
+  transition: 'all 0.3s ease',
   outline: 'none',
   '&:focus': {
     borderColor: '$secondary',
-    boxShadow: '0 0 0 2px rgba(67, 97, 238, 0.15)',
+    boxShadow: '0 0 0 2px $colors$border',
+    background: '#ffffff',
   }
 };
 
@@ -221,64 +214,33 @@ const Input = styled('input', inputShared);
 const Select = styled('select', inputShared);
 const Textarea = styled('textarea', {
   ...inputShared,
-  resize: 'none',
-  flex: 1, // take remaining vertical space naturally
-  minHeight: '200px',
-  paddingRight: '1rem',
-});
-
-const SettingsGearBtn = styled('button', {
-  position: 'relative',
-  background: 'linear-gradient(135deg, #f72585, #4361ee)',
-  border: 'none',
-  borderRadius: '$round',
-  width: '32px',
-  height: '32px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  color: 'white',
-  transition: 'all 0.2s ease',
-  zIndex: 1,
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '200%',
-    height: '200%',
-    background: 'rgba(247, 37, 133, 0.6)',
-    filter: 'blur(15px)',
-    zIndex: -1,
-    borderRadius: '$round',
-    pointerEvents: 'none',
-  },
-  '&:hover': {
-    transform: 'rotate(45deg) scale(1.1)',
-  },
-  '&:active': {
-    transform: 'scale(0.95)',
-  }
+  resize: 'vertical',
+  minHeight: '120px',
+  borderRadius: '$6',
+  paddingRight: '3.5rem', // More space for the dice button
 });
 
 const RandomPromptBtn = styled('button', {
   position: 'absolute',
   top: '$2',
   right: '$2',
-  background: 'transparent',
-  border: 'none',
+  background: 'rgba(255, 255, 255, 0.7)',
+  border: '1px solid $border',
+  borderRadius: '$round',
+  width: '36px',
+  height: '36px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   cursor: 'pointer',
-  color: '$textMuted',
+  color: '$primary',
   transition: 'all 0.2s ease',
   zIndex: 2,
+  backdropFilter: 'blur(10px)',
   '&:hover': {
-    color: '$primary',
+    background: 'white',
     transform: 'scale(1.1) rotate(15deg)',
+    boxShadow: '0 4px 10px rgba(255, 0, 110, 0.2)',
   },
   '&:active': {
     transform: 'scale(0.95)',
@@ -286,11 +248,11 @@ const RandomPromptBtn = styled('button', {
 });
 
 const Button = styled('button', {
-  background: 'linear-gradient(to right, #f72585, #4361ee)',
+  background: 'linear-gradient(45deg, $primary, $secondary)',
   color: 'white',
   border: 'none',
   padding: '1rem 2rem',
-  fontSize: '1rem',
+  fontSize: '$4',
   fontWeight: 600,
   borderRadius: '$round',
   cursor: 'pointer',
@@ -301,31 +263,11 @@ const Button = styled('button', {
   gap: '$2',
   transition: 'all 0.3s ease',
   fontFamily: '$heading',
-  letterSpacing: '0.5px',
-  marginTop: 'auto',
-  position: 'relative',
-  zIndex: 1,
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '105%',
-    height: '140%',
-    background: 'linear-gradient(to right, rgba(247, 37, 133, 0.6), rgba(67, 97, 238, 0.6))',
-    filter: 'blur(15px)',
-    zIndex: -1,
-    borderRadius: '$round',
-    pointerEvents: 'none',
-    transition: 'opacity 0.3s ease',
-  },
+  letterSpacing: '1px',
+  marginTop: '$3',
   '&:hover': {
-    transform: 'translateY(-2px)',
-  },
-  '&:hover::before': {
-    opacity: 1.2,
-    filter: 'blur(20px)',
+    transform: 'scale(1.02)',
+    boxShadow: '0 0 20px $colors$border',
   },
   '&:active': {
     transform: 'scale(0.98)',
@@ -530,10 +472,10 @@ const SliderHeader = styled('div', {
 });
 
 const SliderValue = styled('span', {
-  fontSize: '0.75rem',
+  fontSize: '0.9rem',
   fontWeight: '600',
   color: '$primary',
-  background: 'rgba(247, 37, 133, 0.1)',
+  background: 'rgba(52, 64, 85, 0.1)',
   padding: '2px 8px',
   borderRadius: '$round',
 });
@@ -541,9 +483,9 @@ const SliderValue = styled('span', {
 const SliderInput = styled('input', {
   WebkitAppearance: 'none',
   width: '100%',
-  height: '4px',
+  height: '6px',
   borderRadius: '$round',
-  background: '$border',
+  background: 'linear-gradient(90deg, #888098, #FF006E)',
   outline: 'none',
   opacity: '0.8',
   transition: 'opacity .2s',
@@ -553,33 +495,23 @@ const SliderInput = styled('input', {
   '&::-webkit-slider-thumb': {
     WebkitAppearance: 'none',
     appearance: 'none',
-    width: '16px',
-    height: '16px',
+    width: '20px',
+    height: '20px',
     borderRadius: '$round',
-    background: '$secondary',
-    border: 'none',
+    background: 'white',
+    border: '2px solid $primary',
     cursor: 'pointer',
     boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
   },
   '&::-moz-range-thumb': {
-    width: '16px',
-    height: '16px',
+    width: '20px',
+    height: '20px',
     borderRadius: '$round',
-    background: '$secondary',
-    border: 'none',
+    background: 'white',
+    border: '2px solid $primary',
     cursor: 'pointer',
     boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
   }
-});
-
-const SliderLabelsRow = styled('div', {
-  display: 'flex',
-  justifyContent: 'space-between',
-  fontSize: '0.65rem',
-  textTransform: 'uppercase',
-  color: '$textMuted',
-  fontWeight: 600,
-  marginTop: '0.25rem',
 });
 
 const IdeaMetrics = styled('div', {
@@ -745,6 +677,28 @@ const VariableList = styled('div', {
   gap: '$2',
   marginTop: '$2',
   marginBottom: '$3',
+});
+
+const SettingsGearBtn = styled('button', {
+  position: 'fixed',
+  top: '$5',
+  right: '$5',
+  background: 'linear-gradient(135deg, $primary, $secondary)',
+  border: 'none',
+  cursor: 'pointer',
+  color: 'white',
+  padding: '$3',
+  borderRadius: '$round',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.3s ease',
+  boxShadow: '0 4px 20px rgba(255, 0, 110, 0.3)',
+  zIndex: 1000,
+  '&:hover': {
+    transform: 'rotate(45deg) scale(1.1)',
+    boxShadow: '0 6px 25px rgba(58, 134, 255, 0.4)',
+  },
 });
 
 const ToggleHeader = styled('div', {
@@ -938,121 +892,120 @@ export default function App() {
               </p>
             </Header>
 
+            <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
+              <Settings size={27} />
+            </SettingsGearBtn>
+
             <ToggleBody open={isHeaderOpen}>
               <div>
                 <PanelsSplit>
-                  <GlassPanel>
-                    <h2><Settings size={20} /> AI Configuration</h2>
-                    <p className="subtitle">Fine-tune your model parameters for the perfect output.</p>
+                  <GlassPanel open={showSettings}>
+                    <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
+                      <h2><Settings size={20} /> AI Configuration</h2>
+                      {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                    </ToggleHeader>
 
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <FormGroup>
-                        <Label>AI Provider</Label>
-                        <Select value={provider} onChange={handleProviderChange}>
-                          {Object.entries(PROVIDERS).map(([key, data]) => (
-                            <option key={key} value={key}>{data.name}</option>
-                          ))}
-                        </Select>
-                      </FormGroup>
-
-                      <FormRow>
+                    <ToggleBody open={showSettings}>
+                      <div>
                         <FormGroup>
-                          <Label>API Key</Label>
+                          <Label>AI Provider</Label>
+                          <Select value={provider} onChange={handleProviderChange}>
+                            {Object.entries(PROVIDERS).map(([key, data]) => (
+                              <option key={key} value={key}>{data.name}</option>
+                            ))}
+                          </Select>
+                        </FormGroup>
+
+                        <FormRow>
+                          <FormGroup>
+                            <Label>API Key</Label>
+                            <Input
+                              type="password"
+                              placeholder="Enter API Key"
+                              value={apiKey}
+                              onChange={(e) => setApiKey(e.target.value)}
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                            <Label>Model Name</Label>
+                            <Input
+                              type="text"
+                              placeholder="e.g. gpt-4o"
+                              value={model}
+                              onChange={(e) => setModel(e.target.value)}
+                            />
+                          </FormGroup>
+                        </FormRow>
+
+                        <FormGroup>
+                          <Label>Base URL (Optional override)</Label>
                           <Input
-                            type="password"
-                            placeholder="Enter API Key"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
+                            type="url"
+                            placeholder="https://api.openai.com/v1"
+                            value={baseURL}
+                            onChange={(e) => setBaseURL(e.target.value)}
+                            disabled={provider !== 'custom'}
                           />
                         </FormGroup>
+
                         <FormGroup>
-                          <Label>Model Name</Label>
-                          <Input
-                            type="text"
-                            placeholder="e.g. gpt-4o"
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                          />
+                          <SliderContainer>
+                            <SliderHeader>
+                              <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
+                              <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
+                            </SliderHeader>
+                            <SliderInput
+                              type="range"
+                              min="0"
+                              max="4"
+                              step="1"
+                              value={sliderIndex}
+                              onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
+                            />
+                          </SliderContainer>
                         </FormGroup>
-                      </FormRow>
-
-                      <FormGroup>
-                        <Label>Base URL (Optional override)</Label>
-                        <Input
-                          type="url"
-                          placeholder="https://api.openai.com/v1"
-                          value={baseURL}
-                          onChange={(e) => setBaseURL(e.target.value)}
-                          disabled={provider !== 'custom'}
-                        />
-                      </FormGroup>
-
-                      <FormGroup>
-                        <SliderContainer>
-                          <SliderHeader>
-                            <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
-                            <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
-                          </SliderHeader>
-                          <SliderInput
-                            type="range"
-                            min="0"
-                            max="4"
-                            step="1"
-                            value={sliderIndex}
-                            onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
-                          />
-                          <SliderLabelsRow>
-                            <span>Precise</span>
-                            <span>Creative</span>
-                          </SliderLabelsRow>
-                        </SliderContainer>
-                      </FormGroup>
-                    </div>
+                      </div>
+                    </ToggleBody>
                   </GlassPanel>
 
-                  <GlassPanel>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h2>Generate Ideas</h2>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <SettingsGearBtn
-                          onClick={() => setShowCopySettings(true)}
-                          title="Copy format settings"
-                        >
-                          <Settings size={16} color="white" />
-                        </SettingsGearBtn>
-                      </div>
-                    </div>
+                  <GlassPanel open={showGenerate}>
+                    <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
+                      <h2><Sparkles size={20} /> Generate Ideas</h2>
+                      {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                    </ToggleHeader>
 
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <FormGroup style={{ position: 'relative', flex: 1 }}>
-                        <Textarea
-                          placeholder="Describe your vision in detail... e.g. 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z.'"
-                          value={prompt}
-                          onChange={(e) => setPrompt(e.target.value)}
-                        />
-                        <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
-                          <Dices size={18} />
-                        </RandomPromptBtn>
-                      </FormGroup>
+                    <ToggleBody open={showGenerate}>
+                      <div>
+                        <FormGroup style={{ position: 'relative' }}>
+                          <Textarea
+                            placeholder="Enter a problem, topic, or seed. Example: 'How to revolutionize public transport' or 'A new way to eat soup'"
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                          />
+                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
+                            <Dices size={18} />
+                          </RandomPromptBtn>
+                        </FormGroup>
 
-                      {error && (
-                        <ErrorMessage>
-                          <AlertCircle size={20} />
-                          <span>{error}</span>
-                        </ErrorMessage>
-                      )}
-
-                      <Button
-                        onClick={handleGenerate}
-                        disabled={isGenerating}
-                      >
-                        {isGenerating ? (
-                          <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
-                        ) : (
-                          <><Sparkles size={20} /> Ignite Imagination</>
+                        {error && (
+                          <ErrorMessage>
+                            <AlertCircle size={20} />
+                            <span>{error}</span>
+                          </ErrorMessage>
                         )}
-                      </Button>
-                    </div>
+
+                        <Button
+                          onClick={handleGenerate}
+                          disabled={isGenerating}
+                        >
+                          {isGenerating ? (
+                            <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
+                          ) : (
+                            <><Sparkles size={20} /> Ignite Imagination</>
+                          )}
+                        </Button>
+                      </div>
+                    </ToggleBody>
                   </GlassPanel>
                 </PanelsSplit>
               </div>
