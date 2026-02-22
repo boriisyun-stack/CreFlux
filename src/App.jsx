@@ -317,6 +317,48 @@ const COPY_VARIABLES = [
   { key: '{reasoning}', desc: '평가 이유' },
 ];
 
+const FORMAT_PRESETS = [
+  {
+    key: 'default', name: '기본', format: `[{title}]
+{idea}
+
+Reasoning: {reasoning}
+Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
+  {
+    key: 'notion', name: '노션', format: `### {title}
+> {idea}
+
+**Reasoning:** {reasoning}
+**SYN:** {syntax} | **FEA:** {feasibility} | **REL:** {relevance}` },
+  { key: 'oneliner', name: '원라이너', format: `[{title}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance})` },
+  {
+    key: 'markdown', name: '마크다운', format: `## {title}
+
+{idea}
+
+---
+
+- **Syntax:** {syntax}/100
+- **Feasibility:** {feasibility}/100
+- **Relevance:** {relevance}/100
+
+> {reasoning}` },
+  { key: 'simple', name: '심플', format: `{title}: {idea}` },
+  {
+    key: 'json', name: 'JSON', format: `{
+  "title": "{title}",
+  "idea": "{idea}",
+  "scores": { "syntax": {syntax}, "feasibility": {feasibility}, "relevance": {relevance} },
+  "reasoning": "{reasoning}"
+}` },
+];
+
+const SAMPLE_IDEA = {
+  title: '자동 번역 이어폰',
+  idea: '실시간으로 외국어를 번역해주는 AI 이어폰으로 언어 장벽을 없앤다.',
+  evaluation: { syntax: 82, feasibility: 65, relevance: 91, reasoning: '기술적으로 가능하며 시장 수요가 높음' },
+};
+
 const SOUND_TYPES = [
   { key: 'ding', name: '띨롱!' },
   { key: 'dingdong', name: '딩동' },
@@ -1111,8 +1153,34 @@ export default function App() {
                 <X size={20} />
               </ModalCloseBtn>
               <h3><SlidersHorizontal size={20} /> Copy Format</h3>
+
+              <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+                프리셋
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
+                {FORMAT_PRESETS.map(p => (
+                  <button
+                    key={p.key}
+                    onClick={() => handleCopyFormatChange(p.format)}
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '999px',
+                      border: copyFormat === p.format ? '2px solid #FF006E' : '1px solid var(--colors-border)',
+                      background: copyFormat === p.format ? 'rgba(255, 0, 110, 0.1)' : 'transparent',
+                      color: copyFormat === p.format ? '#FF006E' : 'var(--colors-textMuted)',
+                      fontWeight: copyFormat === p.format ? 700 : 400,
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+
               <p style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', marginBottom: '0.5rem' }}>
-                아이디어를 복사할 때 사용할 형식을 커스텀하세요. 아래 변수를 사용할 수 있습니다:
+                직접 커스텀하거나 위 프리셋을 선택하세요. 사용 가능한 변수:
               </p>
               <VariableList>
                 {COPY_VARIABLES.map(v => (
@@ -1124,24 +1192,32 @@ export default function App() {
                 onChange={(e) => handleCopyFormatChange(e.target.value)}
                 placeholder={DEFAULT_COPY_FORMAT}
               />
-              <p style={{ fontSize: '0.75rem', color: 'var(--colors-textMuted)', marginTop: '0.5rem' }}>
-                줄바꿈도 그대로 반영됩니다. 변수 사이에 텍스트를 자유롭게 넣으세요.
-              </p>
-              <button
-                onClick={() => handleCopyFormatChange(DEFAULT_COPY_FORMAT)}
-                style={{
-                  marginTop: '0.75rem',
-                  background: 'transparent',
-                  border: '1px solid var(--colors-border)',
-                  borderRadius: '999px',
-                  padding: '0.4rem 1rem',
-                  fontSize: '0.8rem',
-                  color: 'var(--colors-textMuted)',
-                  cursor: 'pointer',
-                }}
-              >
-                Reset to Default
-              </button>
+
+              <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginTop: '1rem', marginBottom: '0.4rem' }}>
+                미리보기
+              </label>
+              <pre style={{
+                background: 'rgba(0,0,0,0.03)',
+                border: '1px solid var(--colors-border)',
+                borderRadius: '12px',
+                padding: '1rem',
+                fontSize: '0.8rem',
+                fontFamily: 'monospace',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                color: 'var(--colors-text)',
+                lineHeight: 1.5,
+                maxHeight: '200px',
+                overflowY: 'auto',
+              }}>
+                {copyFormat
+                  .replace(/\{title\}/g, SAMPLE_IDEA.title)
+                  .replace(/\{idea\}/g, SAMPLE_IDEA.idea)
+                  .replace(/\{syntax\}/g, String(SAMPLE_IDEA.evaluation.syntax))
+                  .replace(/\{feasibility\}/g, String(SAMPLE_IDEA.evaluation.feasibility))
+                  .replace(/\{relevance\}/g, String(SAMPLE_IDEA.evaluation.relevance))
+                  .replace(/\{reasoning\}/g, SAMPLE_IDEA.evaluation.reasoning)}
+              </pre>
 
               <hr style={{ border: 'none', borderTop: '1px solid var(--colors-border)', margin: '1.5rem 0' }} />
 
