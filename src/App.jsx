@@ -48,25 +48,15 @@ const AppContainer = styled('div', {
 });
 
 const StickyHeader = styled('div', {
-  position: 'sticky',
-  top: '$4', // Floating top
-  zIndex: 100,
-  backgroundColor: 'rgba(248, 249, 250, 0.85)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  width: '120%', // Make the panels block 1.2x wider
-  marginLeft: '-10%', // Center the artificially widened block
+  position: 'relative',
+  width: '120%',
+  marginLeft: '-10%',
   marginRight: '-10%',
   marginBottom: '$5',
-  padding: '$5',
-  borderRadius: '$7', // Fully rounded island
-  border: '1px solid $border',
-  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
   display: 'flex',
   flexDirection: 'column',
   gap: '$4',
   transition: 'all 0.3s ease',
-  paddingBottom: '4rem', // More breathing room for the bottom toggle button
 });
 
 const MasterToggleBtn = styled('button', {
@@ -125,39 +115,28 @@ const Header = styled('header', {
 
 const GlassPanel = styled('section', {
   background: '$surface',
-  backdropFilter: 'blur(16px)',
-  WebkitBackdropFilter: 'blur(16px)',
   border: '1px solid $border',
-  borderRadius: '$7', // Mathmatically matches 96px closed height perfect pill
+  borderRadius: '16px',
   padding: '$5',
-  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease',
-  height: 'auto',
-  overflow: 'hidden', // Prevent inputs from bleeding out due to large border-radius
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 12px 40px 0 rgba(31, 38, 135, 0.15)',
-  },
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
   '& h2': {
-    fontSize: '$6',
-    marginBottom: '$4',
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    color: '$text',
+    marginBottom: '$1',
     display: 'flex',
     alignItems: 'center',
     gap: '$2',
   },
-  variants: {
-    open: {
-      true: {
-        borderRadius: '$7',
-        borderBottomLeftRadius: '$4',
-        borderBottomRightRadius: '$4',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease',
-      },
-      false: {
-        borderRadius: '$7',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease', // Matches grid-template-rows 0.35s collapse
-      }
-    }
+  '& > p.subtitle': {
+    fontSize: '0.875rem',
+    color: '$textMuted',
+    marginBottom: '$4',
+    marginTop: 0,
   }
 });
 
@@ -186,27 +165,29 @@ const FormRow = styled('div', {
 });
 
 const Label = styled('label', {
-  fontSize: '$2',
+  fontSize: '0.75rem',
   color: '$textMuted',
   fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+  marginBottom: '0.25rem',
 });
 
 const inputShared = {
   width: '100%',
-  boxSizing: 'border-box', // Ensure padding doesn't widen the element beyond 100%
-  background: 'rgba(255, 255, 255, 0.8)',
+  boxSizing: 'border-box',
+  background: '#ffffff',
   border: '1px solid $border',
   color: '$text',
-  padding: '0.8rem 1.2rem',
-  borderRadius: '$round',
+  padding: '0.8rem 1rem',
+  borderRadius: '12px',
   fontFamily: 'inherit',
-  fontSize: '$3',
-  transition: 'all 0.3s ease',
+  fontSize: '0.875rem',
+  transition: 'all 0.2s ease',
   outline: 'none',
   '&:focus': {
     borderColor: '$secondary',
-    boxShadow: '0 0 0 2px $colors$border',
-    background: '#ffffff',
+    boxShadow: '0 0 0 2px rgba(67, 97, 238, 0.15)',
   }
 };
 
@@ -214,33 +195,28 @@ const Input = styled('input', inputShared);
 const Select = styled('select', inputShared);
 const Textarea = styled('textarea', {
   ...inputShared,
-  resize: 'vertical',
-  minHeight: '120px',
-  borderRadius: '$6',
-  paddingRight: '3.5rem', // More space for the dice button
+  resize: 'none',
+  flex: 1, // take remaining vertical space naturally
+  minHeight: '200px',
+  paddingRight: '1rem',
 });
 
 const RandomPromptBtn = styled('button', {
   position: 'absolute',
   top: '$2',
   right: '$2',
-  background: 'rgba(255, 255, 255, 0.7)',
-  border: '1px solid $border',
-  borderRadius: '$round',
-  width: '36px',
-  height: '36px',
+  background: 'transparent',
+  border: 'none',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   cursor: 'pointer',
-  color: '$primary',
+  color: '$textMuted',
   transition: 'all 0.2s ease',
   zIndex: 2,
-  backdropFilter: 'blur(10px)',
   '&:hover': {
-    background: 'white',
+    color: '$primary',
     transform: 'scale(1.1) rotate(15deg)',
-    boxShadow: '0 4px 10px rgba(255, 0, 110, 0.2)',
   },
   '&:active': {
     transform: 'scale(0.95)',
@@ -248,11 +224,11 @@ const RandomPromptBtn = styled('button', {
 });
 
 const Button = styled('button', {
-  background: 'linear-gradient(45deg, $primary, $secondary)',
+  background: 'linear-gradient(to right, $primary, $secondary)',
   color: 'white',
   border: 'none',
   padding: '1rem 2rem',
-  fontSize: '$4',
+  fontSize: '1rem',
   fontWeight: 600,
   borderRadius: '$round',
   cursor: 'pointer',
@@ -263,11 +239,11 @@ const Button = styled('button', {
   gap: '$2',
   transition: 'all 0.3s ease',
   fontFamily: '$heading',
-  letterSpacing: '1px',
-  marginTop: '$3',
+  letterSpacing: '0.5px',
+  marginTop: 'auto', // Push to bottom of flex container
   '&:hover': {
-    transform: 'scale(1.02)',
-    boxShadow: '0 0 20px $colors$border',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 10px 20px -10px $colors$primary',
   },
   '&:active': {
     transform: 'scale(0.98)',
@@ -472,10 +448,10 @@ const SliderHeader = styled('div', {
 });
 
 const SliderValue = styled('span', {
-  fontSize: '0.9rem',
+  fontSize: '0.75rem',
   fontWeight: '600',
   color: '$primary',
-  background: 'rgba(52, 64, 85, 0.1)',
+  background: 'rgba(247, 37, 133, 0.1)',
   padding: '2px 8px',
   borderRadius: '$round',
 });
@@ -483,9 +459,9 @@ const SliderValue = styled('span', {
 const SliderInput = styled('input', {
   WebkitAppearance: 'none',
   width: '100%',
-  height: '6px',
+  height: '4px',
   borderRadius: '$round',
-  background: 'linear-gradient(90deg, #888098, #FF006E)',
+  background: '$border',
   outline: 'none',
   opacity: '0.8',
   transition: 'opacity .2s',
@@ -495,23 +471,33 @@ const SliderInput = styled('input', {
   '&::-webkit-slider-thumb': {
     WebkitAppearance: 'none',
     appearance: 'none',
-    width: '20px',
-    height: '20px',
+    width: '16px',
+    height: '16px',
     borderRadius: '$round',
-    background: 'white',
-    border: '2px solid $primary',
+    background: '$secondary',
+    border: 'none',
     cursor: 'pointer',
     boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
   },
   '&::-moz-range-thumb': {
-    width: '20px',
-    height: '20px',
+    width: '16px',
+    height: '16px',
     borderRadius: '$round',
-    background: 'white',
-    border: '2px solid $primary',
+    background: '$secondary',
+    border: 'none',
     cursor: 'pointer',
     boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
   }
+});
+
+const SliderLabelsRow = styled('div', {
+  display: 'flex',
+  justifyContent: 'space-between',
+  fontSize: '0.65rem',
+  textTransform: 'uppercase',
+  color: '$textMuted',
+  fontWeight: 600,
+  marginTop: '0.25rem',
 });
 
 const IdeaMetrics = styled('div', {
@@ -892,120 +878,122 @@ export default function App() {
               </p>
             </Header>
 
-            <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
-              <Settings size={27} />
-            </SettingsGearBtn>
-
             <ToggleBody open={isHeaderOpen}>
               <div>
                 <PanelsSplit>
-                  <GlassPanel open={showSettings}>
-                    <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
-                      <h2><Settings size={20} /> AI Configuration</h2>
-                      {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                    </ToggleHeader>
+                  <GlassPanel>
+                    <h2><Settings size={20} /> AI Configuration</h2>
+                    <p className="subtitle">Fine-tune your model parameters for the perfect output.</p>
 
-                    <ToggleBody open={showSettings}>
-                      <div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <FormGroup>
+                        <Label>AI Provider</Label>
+                        <Select value={provider} onChange={handleProviderChange}>
+                          {Object.entries(PROVIDERS).map(([key, data]) => (
+                            <option key={key} value={key}>{data.name}</option>
+                          ))}
+                        </Select>
+                      </FormGroup>
+
+                      <FormRow>
                         <FormGroup>
-                          <Label>AI Provider</Label>
-                          <Select value={provider} onChange={handleProviderChange}>
-                            {Object.entries(PROVIDERS).map(([key, data]) => (
-                              <option key={key} value={key}>{data.name}</option>
-                            ))}
-                          </Select>
-                        </FormGroup>
-
-                        <FormRow>
-                          <FormGroup>
-                            <Label>API Key</Label>
-                            <Input
-                              type="password"
-                              placeholder="Enter API Key"
-                              value={apiKey}
-                              onChange={(e) => setApiKey(e.target.value)}
-                            />
-                          </FormGroup>
-                          <FormGroup>
-                            <Label>Model Name</Label>
-                            <Input
-                              type="text"
-                              placeholder="e.g. gpt-4o"
-                              value={model}
-                              onChange={(e) => setModel(e.target.value)}
-                            />
-                          </FormGroup>
-                        </FormRow>
-
-                        <FormGroup>
-                          <Label>Base URL (Optional override)</Label>
+                          <Label>API Key</Label>
                           <Input
-                            type="url"
-                            placeholder="https://api.openai.com/v1"
-                            value={baseURL}
-                            onChange={(e) => setBaseURL(e.target.value)}
-                            disabled={provider !== 'custom'}
+                            type="password"
+                            placeholder="Enter API Key"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
                           />
                         </FormGroup>
-
                         <FormGroup>
-                          <SliderContainer>
-                            <SliderHeader>
-                              <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
-                              <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
-                            </SliderHeader>
-                            <SliderInput
-                              type="range"
-                              min="0"
-                              max="4"
-                              step="1"
-                              value={sliderIndex}
-                              onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
-                            />
-                          </SliderContainer>
+                          <Label>Model Name</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. gpt-4o"
+                            value={model}
+                            onChange={(e) => setModel(e.target.value)}
+                          />
                         </FormGroup>
-                      </div>
-                    </ToggleBody>
+                      </FormRow>
+
+                      <FormGroup>
+                        <Label>Base URL (Optional override)</Label>
+                        <Input
+                          type="url"
+                          placeholder="https://api.openai.com/v1"
+                          value={baseURL}
+                          onChange={(e) => setBaseURL(e.target.value)}
+                          disabled={provider !== 'custom'}
+                        />
+                      </FormGroup>
+
+                      <FormGroup>
+                        <SliderContainer>
+                          <SliderHeader>
+                            <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
+                            <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
+                          </SliderHeader>
+                          <SliderInput
+                            type="range"
+                            min="0"
+                            max="4"
+                            step="1"
+                            value={sliderIndex}
+                            onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
+                          />
+                          <SliderLabelsRow>
+                            <span>Precise</span>
+                            <span>Creative</span>
+                          </SliderLabelsRow>
+                        </SliderContainer>
+                      </FormGroup>
+                    </div>
                   </GlassPanel>
 
-                  <GlassPanel open={showGenerate}>
-                    <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
-                      <h2><Sparkles size={20} /> Generate Ideas</h2>
-                      {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                    </ToggleHeader>
-
-                    <ToggleBody open={showGenerate}>
-                      <div>
-                        <FormGroup style={{ position: 'relative' }}>
-                          <Textarea
-                            placeholder="Enter a problem, topic, or seed. Example: 'How to revolutionize public transport' or 'A new way to eat soup'"
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                          />
-                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
-                            <Dices size={18} />
-                          </RandomPromptBtn>
-                        </FormGroup>
-
-                        {error && (
-                          <ErrorMessage>
-                            <AlertCircle size={20} />
-                            <span>{error}</span>
-                          </ErrorMessage>
-                        )}
-
-                        <Button
-                          onClick={handleGenerate}
-                          disabled={isGenerating}
+                  <GlassPanel>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <h2>Generate Ideas</h2>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <SettingsGearBtn
+                          onClick={() => setShowCopySettings(true)}
+                          title="Copy format settings"
+                          style={{ position: 'relative', top: 0, right: 0 }}
                         >
-                          {isGenerating ? (
-                            <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
-                          ) : (
-                            <><Sparkles size={20} /> Ignite Imagination</>
-                          )}
-                        </Button>
+                          <Settings size={20} color="#9ca3af" />
+                        </SettingsGearBtn>
                       </div>
-                    </ToggleBody>
+                    </div>
+
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <FormGroup style={{ position: 'relative', flex: 1 }}>
+                        <Textarea
+                          placeholder="Describe your vision in detail... e.g. 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z.'"
+                          value={prompt}
+                          onChange={(e) => setPrompt(e.target.value)}
+                        />
+                        <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
+                          <Dices size={18} />
+                        </RandomPromptBtn>
+                      </FormGroup>
+
+                      {error && (
+                        <ErrorMessage>
+                          <AlertCircle size={20} />
+                          <span>{error}</span>
+                        </ErrorMessage>
+                      )}
+
+                      <Button
+                        onClick={handleGenerate}
+                        disabled={isGenerating}
+                      >
+                        {isGenerating ? (
+                          <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
+                        ) : (
+                          <><Sparkles size={20} /> Ignite Imagination</>
+                        )}
+                      </Button>
+                    </div>
                   </GlassPanel>
                 </PanelsSplit>
               </div>
