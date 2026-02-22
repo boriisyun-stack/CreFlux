@@ -77,6 +77,8 @@ export const globalStyles = globalCss({
         display: 'flex',
         justifyContent: 'center',
         padding: '0',
+        backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(247, 37, 133, 0.05) 0%, transparent 40%), radial-gradient(circle at 85% 30%, rgba(67, 97, 238, 0.05) 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(255, 190, 11, 0.03) 0%, transparent 40%)',
+        backgroundAttachment: 'fixed',
     },
     'h1, h2, h3, h4': {
         fontFamily: '$heading',
