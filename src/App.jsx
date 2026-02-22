@@ -61,26 +61,26 @@ const StickyHeader = styled('div', {
 
 const MasterToggleBtn = styled('button', {
   position: 'absolute',
-  bottom: '-16px', // Shifted lower to stay outside the panel border
+  bottom: '-20px', // Shifted lower to stay outside the panel border
   left: '50%',
   transform: 'translateX(-50%)',
-  background: 'linear-gradient(135deg, $primary, $secondary)',
+  background: 'linear-gradient(to right, #f72585, #4361ee)',
   color: 'white',
   border: 'none',
   borderRadius: '$round',
-  padding: '$2 $4',
+  padding: '0.6rem 1.5rem',
   display: 'flex',
   alignItems: 'center',
   gap: '$2',
   cursor: 'pointer',
-  fontWeight: 600,
-  fontSize: '1rem',
-  boxShadow: '0 4px 15px rgba(255, 0, 110, 0.3)',
+  fontWeight: 700,
+  fontSize: '0.875rem',
+  boxShadow: '0 6px 12px -2px rgba(247, 37, 133, 0.5), 0 6px 12px -2px rgba(67, 97, 238, 0.5)',
   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   zIndex: 10,
   '&:hover': {
     transform: 'translateX(-50%) scale(1.05)',
-    boxShadow: '0 6px 20px rgba(58, 134, 255, 0.4)',
+    boxShadow: '0 8px 16px -2px rgba(247, 37, 133, 0.6), 0 8px 16px -2px rgba(67, 97, 238, 0.6)',
   },
   '&:active': {
     transform: 'translateX(-50%) scale(0.95)',
@@ -99,8 +99,8 @@ const Header = styled('header', {
     background: 'linear-gradient(135deg, $primary, $secondary)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    marginBottom: '$2',
-    animation: `${glow} 3s ease-in-out infinite alternate`,
+    marginBottom: '$1',
+    filter: 'drop-shadow(0px 4px 12px rgba(247, 37, 133, 0.4))',
   },
   '& p': {
     color: '$textMuted',
@@ -201,6 +201,28 @@ const Textarea = styled('textarea', {
   paddingRight: '1rem',
 });
 
+const SettingsGearBtn = styled('button', {
+  background: 'linear-gradient(135deg, #f72585, #4361ee)',
+  border: 'none',
+  borderRadius: '$round',
+  width: '32px',
+  height: '32px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  color: 'white',
+  boxShadow: '0 4px 10px rgba(247, 37, 133, 0.4)',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    transform: 'rotate(45deg) scale(1.1)',
+    boxShadow: '0 6px 14px rgba(247, 37, 133, 0.5)',
+  },
+  '&:active': {
+    transform: 'scale(0.95)',
+  }
+});
+
 const RandomPromptBtn = styled('button', {
   position: 'absolute',
   top: '$2',
@@ -224,7 +246,7 @@ const RandomPromptBtn = styled('button', {
 });
 
 const Button = styled('button', {
-  background: 'linear-gradient(to right, $primary, $secondary)',
+  background: 'linear-gradient(to right, #f72585, #4361ee)',
   color: 'white',
   border: 'none',
   padding: '1rem 2rem',
@@ -240,10 +262,11 @@ const Button = styled('button', {
   transition: 'all 0.3s ease',
   fontFamily: '$heading',
   letterSpacing: '0.5px',
-  marginTop: 'auto', // Push to bottom of flex container
+  marginTop: 'auto',
+  boxShadow: '0 8px 16px -4px rgba(247, 37, 133, 0.5), 0 8px 16px -4px rgba(67, 97, 238, 0.5)',
   '&:hover': {
     transform: 'translateY(-2px)',
-    boxShadow: '0 10px 20px -10px $colors$primary',
+    boxShadow: '0 12px 24px -6px rgba(247, 37, 133, 0.6), 0 12px 24px -6px rgba(67, 97, 238, 0.6)',
   },
   '&:active': {
     transform: 'scale(0.98)',
@@ -665,28 +688,6 @@ const VariableList = styled('div', {
   marginBottom: '$3',
 });
 
-const SettingsGearBtn = styled('button', {
-  position: 'fixed',
-  top: '$5',
-  right: '$5',
-  background: 'linear-gradient(135deg, $primary, $secondary)',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'white',
-  padding: '$3',
-  borderRadius: '$round',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transition: 'all 0.3s ease',
-  boxShadow: '0 4px 20px rgba(255, 0, 110, 0.3)',
-  zIndex: 1000,
-  '&:hover': {
-    transform: 'rotate(45deg) scale(1.1)',
-    boxShadow: '0 6px 25px rgba(58, 134, 255, 0.4)',
-  },
-});
-
 const ToggleHeader = styled('div', {
   display: 'flex',
   justifyContent: 'space-between',
@@ -957,9 +958,8 @@ export default function App() {
                         <SettingsGearBtn
                           onClick={() => setShowCopySettings(true)}
                           title="Copy format settings"
-                          style={{ position: 'relative', top: 0, right: 0 }}
                         >
-                          <Settings size={20} color="#9ca3af" />
+                          <Settings size={16} color="white" />
                         </SettingsGearBtn>
                       </div>
                     </div>
