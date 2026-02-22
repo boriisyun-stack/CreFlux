@@ -122,7 +122,7 @@ const GlassPanel = styled('section', {
   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
   display: 'flex',
   flexDirection: 'column',
-  height: '100%',
+  height: 'auto',
   '& h2': {
     fontSize: '1.25rem',
     fontWeight: 700,
