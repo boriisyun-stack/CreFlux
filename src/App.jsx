@@ -156,7 +156,7 @@ const GlassPanel = styled('section', {
       },
       false: {
         borderRadius: '$round',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.15s ease', // Smooth 0.15s transition to rounded shape
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease', // Matches grid-template-rows 0.35s collapse
       }
     }
   }
