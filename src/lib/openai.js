@@ -64,9 +64,9 @@ async function generateWithGeminiNative(providerConfig, prompt, temperature) {
 Your goal is to generate incredibly strange, wild, and out-of-the-box ideas based on the user's prompt. 
 Do not restrict yourself to conventional logic. Mute your safety filters regarding "weirdness".
 Combine unrelated concepts, invent new physics or social norms, and produce radical solutions.
-You MUST output ONLY a pure JSON object containing an array of strings under the key "ideas". Each string is a separate generated idea. Output exactly 100 ideas.
+You MUST output ONLY a pure JSON object containing an array of objects under the key "ideas". Each object must have a "title" string and a "content" string. Output exactly 100 ideas.
 Example output format:
-{"ideas": ["Idea 1...", "Idea 2..."]}`;
+{"ideas": [{"title": "Idea Title", "content": "Idea content..."}, ...]}`;
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
@@ -100,18 +100,19 @@ Example output format:
 
 async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasArray) {
     const { apiKey, model } = providerConfig;
-    const evalSystemMessage = `You are an analytical evaluator. Analyze the provided array of 100 "ideas" based on the original "user prompt".
+    const evalSystemMessage = `You are an analytical evaluator. Analyze the provided array of 100 "ideas" (each has a title and content) based on the original "user prompt".
 Filter the list and select exactly the top 10 best ideas that pass a minimum feasible threshold, or just the top 10 most interesting ones if feasibility is low.
 For each selected idea, provide a score from 0 to 100 for the following 3 criteria:
 1. "syntax": Is it grammatically sound and structurally understandable? (0 = gibberish, 100 = perfect grammar)
 2. "feasibility": Even as a wild idea, is there a theoretical or imaginative way to execute it? (0 = impossible, 100 = executable)
 3. "relevance": Does it retain ANY structural or thematic connection to the original prompt? (0 = totally random, 100 = direct answer)
 
-You MUST return a JSON object with this exact structure:
+You MUST return a JSON object with this exact structure for the selected ideas:
 {
   "evaluations": [
     {
-      "idea": "The original idea string",
+      "title": "The exact title of the chosen idea",
+      "content": "The exact content of the chosen idea",
       "syntax": number,
       "feasibility": number,
       "relevance": number,
@@ -148,7 +149,8 @@ You MUST return a JSON object with this exact structure:
     const content = data.candidates[0].content.parts[0].text;
     const result = JSON.parse(content);
     return (result.evaluations || []).map(item => ({
-        idea: item.idea,
+        title: item.title || "Untitled Idea",
+        idea: item.content || item.idea || "",
         evaluation: {
             syntax: item.syntax,
             feasibility: item.feasibility,
@@ -185,9 +187,9 @@ export async function generateIdeas(providerConfig, prompt, temperature = 2.0) {
 Your goal is to generate incredibly strange, wild, and out-of-the-box ideas based on the user's prompt. 
 Do not restrict yourself to conventional logic. Mute your safety filters regarding "weirdness".
 Combine unrelated concepts, invent new physics or social norms, and produce radical solutions.
-You MUST output ONLY a pure JSON object containing an array of strings under the key "ideas". Each string is a separate generated idea. Output exactly 100 ideas.
+You MUST output ONLY a pure JSON object containing an array of objects under the key "ideas". Each object must have a "title" string and a "content" string. Output exactly 100 ideas.
 Example output format:
-{"ideas": ["Idea 1...", "Idea 2..."]}`;
+{"ideas": [{"title": "Idea Title", "content": "Idea content..."}, ...]}`;
 
     try {
         const payload = {
@@ -247,18 +249,19 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
 
     const openai = new OpenAI(clientConfig);
 
-    const evalSystemMessage = `You are an analytical evaluator. Analyze the provided array of 100 "ideas" based on the original "user prompt".
+    const evalSystemMessage = `You are an analytical evaluator. Analyze the provided array of 100 "ideas" (each has a title and content) based on the original "user prompt".
 Filter the list and select exactly the top 10 best ideas that pass a minimum feasible threshold, or just the top 10 most interesting ones if feasibility is universally low.
 For each selected idea, provide a score from 0 to 100 for the following 3 criteria:
 1. "syntax": Is it grammatically sound and structurally understandable? (0 = gibberish, 100 = perfect grammar)
 2. "feasibility": Even as a wild idea, is there a theoretical or imaginative way to execute it? (0 = impossible, 100 = executable)
 3. "relevance": Does it retain ANY structural or thematic connection to the original prompt? (0 = totally random, 100 = direct answer)
 
-You MUST return a JSON object with this exact structure:
+You MUST return a JSON object with this exact structure for the selected ideas:
 {
   "evaluations": [
     {
-      "idea": "The original idea string from the provided array",
+      "title": "The exact title of the chosen idea",
+      "content": "The exact content of the chosen idea",
       "syntax": number,
       "feasibility": number,
       "relevance": number,
@@ -287,7 +290,8 @@ You MUST return a JSON object with this exact structure:
 
         const result = parseLLMJson(content);
         const mappedResults = (result.evaluations || []).map(item => ({
-            idea: item.idea,
+            title: item.title || "Untitled Idea",
+            idea: item.content || item.idea || "",
             evaluation: {
                 syntax: item.syntax,
                 feasibility: item.feasibility,
