@@ -83,4 +83,28 @@ export const globalStyles = globalCss({
     'h1, h2, h3, h4': {
         fontFamily: '$heading',
     },
+    // Custom scrollbar
+    '::-webkit-scrollbar': {
+        width: '8px',
+        height: '8px',
+    },
+    '::-webkit-scrollbar-track': {
+        background: 'transparent',
+    },
+    '::-webkit-scrollbar-thumb': {
+        background: 'rgba(131, 56, 236, 0.25)',
+        borderRadius: '9999px',
+        border: '2px solid transparent',
+        backgroundClip: 'content-box',
+    },
+    '::-webkit-scrollbar-thumb:hover': {
+        background: 'linear-gradient(135deg, #FF006E, #3A86FF)',
+        borderRadius: '9999px',
+        border: '2px solid transparent',
+        backgroundClip: 'content-box',
+    },
+    '*': {
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'rgba(131, 56, 236, 0.25) transparent',
+    },
 });
