@@ -163,7 +163,7 @@ const GlassPanel = styled('section', {
 
 const PanelsSplit = styled('div', {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+  gridTemplateColumns: '1fr 1fr',
   gap: '$4',
   alignItems: 'start', // Prevent stretching of items
   width: '100%',
@@ -214,7 +214,7 @@ const Select = styled('select', inputShared);
 const Textarea = styled('textarea', {
   ...inputShared,
   resize: 'vertical',
-  minHeight: '46px', // Matches the height of the single-line Input/Select components
+  minHeight: '120px',
   borderRadius: '$6',
   paddingRight: '3.5rem', // More space for the dice button
 });
