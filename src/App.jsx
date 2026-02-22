@@ -611,7 +611,7 @@ const VariableList = styled('div', {
 
 const SettingsGearBtn = styled('button', {
   position: 'fixed',
-  bottom: '$5',
+  top: '$5',
   right: '$5',
   background: 'linear-gradient(135deg, $primary, $secondary)',
   border: 'none',
