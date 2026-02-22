@@ -149,9 +149,14 @@ const GlassPanel = styled('section', {
   variants: {
     open: {
       true: {
-        borderRadius: '$7', // Less rounded, almost straight to connect with content
+        borderRadius: '$7',
         borderBottomLeftRadius: '$4',
         borderBottomRightRadius: '$4',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      false: {
+        borderRadius: '$round',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0s', // Snap to round instantly on close so it looks round while squishing
       }
     }
   }
