@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { generateIdeas, evaluateIdeasBatch, enhancePrompt } from './lib/openai';
-import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices, Bookmark, History } from 'lucide-react';
+import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices } from 'lucide-react';
 import { styled, gloablStyles, keyframes } from './stitches.config';
 import { RANDOM_PROMPTS } from './lib/prompts';
 
@@ -280,34 +280,6 @@ const Button = styled('button', {
   }
 });
 
-const SecondaryButton = styled('button', {
-  background: 'rgba(255, 255, 255, 0.5)',
-  color: '$textMuted',
-  border: '1px solid $border',
-  padding: '1rem',
-  fontSize: '$4',
-  fontWeight: 600,
-  borderRadius: '$round',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '$2',
-  transition: 'all 0.2s ease',
-  fontFamily: '$heading',
-  letterSpacing: '0.5px',
-  marginTop: '$3',
-  '&:hover': {
-    background: 'white',
-    color: '$primary',
-    transform: 'scale(1.02)',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
-  },
-  '&:active': {
-    transform: 'scale(0.98)',
-  }
-});
-
 const Loader = styled('div', {
   animation: `${spin} 2s linear infinite`,
   marginRight: '$2',
@@ -405,35 +377,6 @@ const CopyButton = styled('button', {
     transform: 'scale(1.1)',
     color: '$primary',
   },
-});
-
-const BookmarkButton = styled('button', {
-  position: 'absolute',
-  top: '$4',
-  right: 'calc($4 + 44px)', // Give it space beside the CopyButton
-  background: '#ABDAE1',
-  border: '2px solid #A3B9C9',
-  borderRadius: '$round',
-  width: '36px',
-  height: '36px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  color: 'white',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    transform: 'scale(1.1)',
-    boxShadow: '0 4px 10px rgba(163, 185, 201, 0.5)',
-  },
-  variants: {
-    active: {
-      true: {
-        background: '#3A86FF',
-        borderColor: '#3A86FF',
-      }
-    }
-  }
 });
 
 const SliderContainer = styled('div', {
@@ -689,30 +632,6 @@ export default function App() {
     setPrompt(RANDOM_PROMPTS[randomIndex]);
   };
 
-  const toggleBookmark = (ideaIndex) => {
-    const ideaToSave = results[ideaIndex];
-    if (!ideaToSave) return;
-
-    setSavedIdeas(prev => {
-      // Find if we already saved this exact idea by checking its text content
-      const existsIndex = prev.findIndex(item => item.idea === ideaToSave.idea);
-
-      let newSaved;
-      if (existsIndex >= 0) {
-        newSaved = prev.filter((_, idx) => idx !== existsIndex);
-      } else {
-        newSaved = [ideaToSave, ...prev]; // Prepend new bookmarks
-      }
-
-      localStorage.setItem('creflux_bookmarks', JSON.stringify(newSaved));
-      return newSaved;
-    });
-  };
-
-  const isBookmarked = (ideaText) => {
-    return savedIdeas.some(item => item.idea === ideaText);
-  };
-
   const getScoreColor = (score) => {
     if (score >= 75) return 'high';
     if (score >= 40) return 'medium';
@@ -880,13 +799,6 @@ export default function App() {
             <IdeasList>
               {results.map((item, index) => (
                 <IdeaCard key={index} style={{ animationDelay: `${index * 0.1}s` }}>
-                  <BookmarkButton
-                    active={isBookmarked(item.idea) ? true : undefined}
-                    onClick={() => toggleBookmark(index)}
-                    title={isBookmarked(item.idea) ? "Remove Bookmark" : "Save Idea"}
-                  >
-                    <Bookmark size={16} fill={isBookmarked(item.idea) ? "white" : "none"} />
-                  </BookmarkButton>
                   <CopyButton onClick={() => handleCopy(item, index)} title="Copy Idea">
                     {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                   </CopyButton>
