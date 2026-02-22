@@ -526,8 +526,7 @@ const ModalOverlay = styled('div', {
 });
 
 const ModalContent = styled('div', {
-  background: '$surface',
-  backdropFilter: 'blur(16px)',
+  background: '#ffffff',
   border: '1px solid $border',
   borderRadius: '$7',
   padding: '$5',
@@ -611,19 +610,24 @@ const VariableList = styled('div', {
 });
 
 const SettingsGearBtn = styled('button', {
-  background: 'transparent',
+  position: 'fixed',
+  bottom: '$5',
+  right: '$5',
+  background: 'linear-gradient(135deg, $primary, $secondary)',
   border: 'none',
   cursor: 'pointer',
-  color: '$textMuted',
-  padding: '$1',
+  color: 'white',
+  padding: '$3',
   borderRadius: '$round',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   transition: 'all 0.3s ease',
+  boxShadow: '0 4px 20px rgba(255, 0, 110, 0.3)',
+  zIndex: 1000,
   '&:hover': {
-    color: '$primary',
-    transform: 'rotate(45deg)',
+    transform: 'rotate(45deg) scale(1.1)',
+    boxShadow: '0 6px 25px rgba(58, 134, 255, 0.4)',
   },
 });
 
@@ -809,11 +813,12 @@ export default function App() {
               <h1>CreFlux</h1>
               <p>
                 Make your idea with AI's hallucination
-                <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
-                  <SlidersHorizontal size={18} />
-                </SettingsGearBtn>
               </p>
             </Header>
+
+            <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
+              <Settings size={27} />
+            </SettingsGearBtn>
 
             <ToggleBody open={isHeaderOpen}>
               <div>
