@@ -41,7 +41,7 @@ const RootContainer = styled('div', {
 
 const AppContainer = styled('div', {
   width: '100%',
-  maxWidth: '1200px', // Increased to fit two horizontal panels comfortably
+  maxWidth: '1440px', // Increased width by 1.2x
   display: 'flex',
   flexDirection: 'column',
   padding: '0 $5 $5 $5', // Left, right, bottom padding
