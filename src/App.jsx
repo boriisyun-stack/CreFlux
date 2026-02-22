@@ -130,7 +130,7 @@ const GlassPanel = styled('section', {
   backdropFilter: 'blur(16px)',
   WebkitBackdropFilter: 'blur(16px)',
   border: '1px solid $border',
-  borderRadius: '$round', // Default to fully pill-shaped
+  borderRadius: '$7', // Mathmatically matches 96px closed height perfect pill
   padding: '$5',
   boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease',
@@ -152,10 +152,10 @@ const GlassPanel = styled('section', {
         borderRadius: '$7',
         borderBottomLeftRadius: '$4',
         borderBottomRightRadius: '$4',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease',
       },
       false: {
-        borderRadius: '$round',
+        borderRadius: '$7',
         transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease', // Matches grid-template-rows 0.35s collapse
       }
     }
