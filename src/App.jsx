@@ -66,12 +66,13 @@ const StickyHeader = styled('div', {
   flexDirection: 'column',
   gap: '$4',
   transition: 'all 0.3s ease',
-  paddingBottom: '4rem', // More breathing room for the bottom toggle button
+  paddingTop: '$4',
+  paddingBottom: '2.5rem', // Reduced from 4rem for tighter spacing
 });
 
 const MasterToggleBtn = styled('button', {
   position: 'absolute',
-  bottom: '-16px', // Shifted lower to stay outside the panel border
+  bottom: '-12px', // Moved up slightly from -16px
   left: '50%',
   transform: 'translateX(-50%)',
   background: 'linear-gradient(135deg, $primary, $secondary)',
