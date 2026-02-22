@@ -309,30 +309,30 @@ Reasoning: {reasoning}
 Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}`;
 
 const COPY_VARIABLES = [
-  { key: '{title}', desc: '아이디어 제목' },
-  { key: '{idea}', desc: '아이디어 내용' },
-  { key: '{syntax}', desc: '구문 점수' },
-  { key: '{feasibility}', desc: '실현 가능성 점수' },
-  { key: '{relevance}', desc: '관련성 점수' },
-  { key: '{reasoning}', desc: '평가 이유' },
+  { key: '{title}', desc: 'Idea Title' },
+  { key: '{idea}', desc: 'Idea Content' },
+  { key: '{syntax}', desc: 'Syntax Score' },
+  { key: '{feasibility}', desc: 'Feasibility Score' },
+  { key: '{relevance}', desc: 'Relevance Score' },
+  { key: '{reasoning}', desc: 'Evaluation Reasoning' },
 ];
 
 const FORMAT_PRESETS = [
   {
-    key: 'default', name: '기본', format: `[{title}]
+    key: 'default', name: 'Default', format: `[{title}]
 {idea}
 
 Reasoning: {reasoning}
 Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
   {
-    key: 'notion', name: '노션', format: `### {title}
+    key: 'notion', name: 'Notion', format: `### {title}
 > {idea}
 
 **Reasoning:** {reasoning}
 **SYN:** {syntax} | **FEA:** {feasibility} | **REL:** {relevance}` },
-  { key: 'oneliner', name: '원라이너', format: `[{title}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance})` },
+  { key: 'oneliner', name: 'One-liner', format: `[{title}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance})` },
   {
-    key: 'markdown', name: '마크다운', format: `## {title}
+    key: 'markdown', name: 'Markdown', format: `## {title}
 
 {idea}
 
@@ -343,7 +343,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
 - **Relevance:** {relevance}/100
 
 > {reasoning}` },
-  { key: 'simple', name: '심플', format: `{title}: {idea}` },
+  { key: 'simple', name: 'Simple', format: `{title}: {idea}` },
   {
     key: 'json', name: 'JSON', format: `{
   "title": "{title}",
@@ -354,18 +354,18 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
 ];
 
 const SAMPLE_IDEA = {
-  title: '자동 번역 이어폰',
-  idea: '실시간으로 외국어를 번역해주는 AI 이어폰으로 언어 장벽을 없앤다.',
-  evaluation: { syntax: 82, feasibility: 65, relevance: 91, reasoning: '기술적으로 가능하며 시장 수요가 높음' },
+  title: 'Auto-Translate Earbuds',
+  idea: 'Real-time translation AI earbuds that eliminate language barriers.',
+  evaluation: { syntax: 87, feasibility: 72, relevance: 94, reasoning: 'Technologically viable with high market demand.' },
 };
 
 const SOUND_TYPES = [
-  { key: 'ding', name: '띨롱!' },
-  { key: 'dingdong', name: '딩동' },
-  { key: 'chime', name: '뾰로롱' },
-  { key: 'tada', name: '짠!' },
-  { key: 'bell', name: '벨소리' },
-  { key: 'none', name: '소리 없음' },
+  { key: 'ding', name: 'Ding!' },
+  { key: 'dingdong', name: 'Ding-Dong' },
+  { key: 'chime', name: 'Chime' },
+  { key: 'tada', name: 'Ta-da!' },
+  { key: 'bell', name: 'Bell' },
+  { key: 'none', name: 'None' },
 ];
 
 function playSound(type, volume) {
@@ -1155,7 +1155,7 @@ export default function App() {
               <h3><SlidersHorizontal size={20} /> Copy Format</h3>
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                프리셋
+                Presets
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
                 {FORMAT_PRESETS.map(p => (
@@ -1180,7 +1180,7 @@ export default function App() {
               </div>
 
               <p style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', marginBottom: '0.5rem' }}>
-                직접 커스텀하거나 위 프리셋을 선택하세요. 사용 가능한 변수:
+                Customize directly or select a preset above. Available variables:
               </p>
               <VariableList>
                 {COPY_VARIABLES.map(v => (
@@ -1194,7 +1194,7 @@ export default function App() {
               />
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginTop: '1rem', marginBottom: '0.4rem' }}>
-                미리보기
+                Preview
               </label>
               <pre style={{
                 background: 'rgba(0,0,0,0.03)',
@@ -1219,13 +1219,29 @@ export default function App() {
                   .replace(/\{reasoning\}/g, SAMPLE_IDEA.evaluation.reasoning)}
               </pre>
 
+              <button
+                onClick={() => handleCopyFormatChange(DEFAULT_COPY_FORMAT)}
+                style={{
+                  marginTop: '0.75rem',
+                  background: 'transparent',
+                  border: '1px solid var(--colors-border)',
+                  borderRadius: '999px',
+                  padding: '0.4rem 1rem',
+                  fontSize: '0.8rem',
+                  color: 'var(--colors-textMuted)',
+                  cursor: 'pointer',
+                }}
+              >
+                Reset to Default
+              </button>
+
               <hr style={{ border: 'none', borderTop: '1px solid var(--colors-border)', margin: '1.5rem 0' }} />
 
               <h3><Volume2 size={20} /> Notification Sound</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                    소리 종류
+                    Sound Type
                   </label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                     {SOUND_TYPES.map(s => (
@@ -1251,7 +1267,7 @@ export default function App() {
                 </div>
                 <div>
                   <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                    볼륨: {Math.round(soundVolume * 100)}%
+                    Volume: {Math.round(soundVolume * 100)}%
                   </label>
                   <input
                     type="range"

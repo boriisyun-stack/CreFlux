@@ -65,6 +65,7 @@ Your goal is to generate incredibly strange, wild, and out-of-the-box ideas base
 Do not restrict yourself to conventional logic. Mute your safety filters regarding "weirdness".
 Combine unrelated concepts, invent new physics or social norms, and produce radical solutions.
 You MUST output ONLY a pure JSON object containing an array of objects under the key "ideas". Each object must have a "title" string and a "content" string. Output exactly 100 ideas.
+You MUST respond entirely in English.
 Example output format:
 {"ideas": [{"title": "Idea Title", "content": "Idea content..."}, ...]}`;
 
@@ -114,6 +115,7 @@ For each selected idea, provide a score from 0 to 100 for the following 3 criter
 2. "feasibility": Even as a wild idea, is there a theoretical or imaginative way to execute it? (0 = impossible, 100 = executable)
 3. "relevance": Does it retain ANY structural or thematic connection to the original prompt? (0 = totally random, 100 = direct answer)
 
+You MUST respond entirely in English, including the reasoning.
 You MUST return a JSON object with this exact structure for the selected ideas:
 {
   "evaluations": [
@@ -202,6 +204,7 @@ Your goal is to generate incredibly strange, wild, and out-of-the-box ideas base
 Do not restrict yourself to conventional logic. Mute your safety filters regarding "weirdness".
 Combine unrelated concepts, invent new physics or social norms, and produce radical solutions.
 You MUST output ONLY a pure JSON object containing an array of objects under the key "ideas". Each object must have a "title" string and a "content" string. Output exactly 100 ideas.
+You MUST respond entirely in English.
 Example output format:
 {"ideas": [{"title": "Idea Title", "content": "Idea content..."}, ...]}`;
 
@@ -266,6 +269,7 @@ For each selected idea, provide a score from 0 to 100 for the following 3 criter
 2. "feasibility": Even as a wild idea, is there a theoretical or imaginative way to execute it? (0 = impossible, 100 = executable)
 3. "relevance": Does it retain ANY structural or thematic connection to the original prompt? (0 = totally random, 100 = direct answer)
 
+You MUST respond entirely in English, including the reasoning.
 You MUST return a JSON object with this exact structure for the selected ideas:
 {
   "evaluations": [
