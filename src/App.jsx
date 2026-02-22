@@ -214,7 +214,7 @@ const Select = styled('select', inputShared);
 const Textarea = styled('textarea', {
   ...inputShared,
   resize: 'vertical',
-  minHeight: '120px',
+  minHeight: '46px', // Matches the height of the single-line Input/Select components
   borderRadius: '$6',
   paddingRight: '3.5rem', // More space for the dice button
 });
