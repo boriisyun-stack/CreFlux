@@ -56,14 +56,11 @@ const constraints = [
     " by controlling other people's minds.", " using quantum entanglement.", " while hallucinating wildly.", " with a gun to your head.", " while slowly turning into a bug."
 ];
 
-// Generate exactly 200 distinct creative prompts
-export const RANDOM_PROMPTS = [];
-let index = 0;
-for (let v of verbs) {
-    for (let s of subjects) {
-        // Pick a constraint cyclically to guarantee exactly 200 combinations
-        let constraint = constraints[index % constraints.length];
-        RANDOM_PROMPTS.push(`${v} the experience of ${s}${constraint}`);
-        index++;
-    }
+// 최적화된 부분: 배열을 미리 만들지 않고, 필요할 때마다 랜덤으로 하나씩 뽑아서 조립함
+export function getRandomPrompt() {
+    const v = verbs[Math.floor(Math.random() * verbs.length)];
+    const s = subjects[Math.floor(Math.random() * subjects.length)];
+    const c = constraints[Math.floor(Math.random() * constraints.length)];
+
+    return `${v} the experience of ${s}${c}`;
 }

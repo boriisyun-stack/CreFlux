@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { generateIdeas, evaluateIdeasBatch, enhancePrompt } from './lib/openai';
 import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices } from 'lucide-react';
 import { styled, globalStyles, keyframes } from './stitches.config';
-import { RANDOM_PROMPTS } from './lib/prompts';
+import { getRandomPrompt } from './lib/prompts';
 
 // Initialize global styles
 globalStyles();
@@ -618,8 +618,7 @@ export default function App() {
   };
 
   const handleRandomPrompt = () => {
-    const randomIndex = Math.floor(Math.random() * RANDOM_PROMPTS.length);
-    setPrompt(RANDOM_PROMPTS[randomIndex]);
+    setPrompt(getRandomPrompt());
   };
 
   const getScoreColor = useCallback((score) => {
