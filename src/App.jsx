@@ -63,14 +63,14 @@ const StickyHeader = styled('div', {
   flexDirection: 'column',
   gap: '$4',
   transition: 'all 0.3s ease',
-  paddingBottom: '2.5rem', // Make room for the absolute toggle button
+  paddingBottom: '3.5rem', // Increased to avoid toggle button overlapping content
 });
 
 const MasterToggleBtn = styled('button', {
   position: 'absolute',
-  bottom: 0,
+  bottom: '-12px', // Positioned slightly below the sticky header's bottom edge
   left: '50%',
-  transform: 'translate(-50%, -65%)', // move up 65% of its height
+  transform: 'translateX(-50%)',
   background: 'linear-gradient(135deg, $primary, $secondary)',
   color: 'white',
   border: 'none',
@@ -129,7 +129,8 @@ const GlassPanel = styled('section', {
   padding: '$5',
   boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-radius 0.35s ease',
-  height: 'auto', // Ensure it un-stretches if in a grid
+  height: 'auto',
+  overflow: 'hidden', // Prevent inputs from bleeding out due to large border-radius
   '&:hover': {
     transform: 'translateY(-2px)',
     boxShadow: '0 12px 40px 0 rgba(31, 38, 135, 0.15)',
@@ -176,9 +177,12 @@ const FormGroup = styled('div', {
 });
 
 const FormRow = styled('div', {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  display: 'flex',
+  flexWrap: 'wrap',
   gap: '$3',
+  '& > div': {
+    flex: '1 1 200px', // Allow them to grow and shrink, but wrap if below 200px
+  }
 });
 
 const Label = styled('label', {
@@ -212,7 +216,7 @@ const Textarea = styled('textarea', {
   resize: 'vertical',
   minHeight: '120px',
   borderRadius: '$6',
-  paddingRight: '3rem', // Add space for the dice button
+  paddingRight: '3.5rem', // More space for the dice button
 });
 
 const RandomPromptBtn = styled('button', {
