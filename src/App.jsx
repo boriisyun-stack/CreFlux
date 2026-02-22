@@ -41,7 +41,7 @@ const RootContainer = styled('div', {
 
 const AppContainer = styled('div', {
   width: '100%',
-  maxWidth: '1440px', // Increased width by 1.2x
+  maxWidth: '1200px', // Restored to 1200px (user only wanted UI panels wider)
   display: 'flex',
   flexDirection: 'column',
   padding: '0 $5 $5 $5', // Left, right, bottom padding
@@ -54,7 +54,10 @@ const StickyHeader = styled('div', {
   backgroundColor: 'rgba(248, 249, 250, 0.85)',
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
-  margin: '0 0 $5 0', // Remove negative edges
+  width: '120%', // Make the panels block 1.2x wider
+  marginLeft: '-10%', // Center the artificially widened block
+  marginRight: '-10%',
+  marginBottom: '$5',
   padding: '$5',
   borderRadius: '$7', // Fully rounded island
   border: '1px solid $border',
@@ -86,11 +89,11 @@ const MasterToggleBtn = styled('button', {
   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   zIndex: 10,
   '&:hover': {
-    transform: 'translate(-50%, -65%) scale(1.05)',
+    transform: 'translateX(-50%) scale(1.05)',
     boxShadow: '0 6px 20px rgba(58, 134, 255, 0.4)',
   },
   '&:active': {
-    transform: 'translate(-50%, -65%) scale(0.95)',
+    transform: 'translateX(-50%) scale(0.95)',
   }
 });
 
