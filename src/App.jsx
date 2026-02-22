@@ -377,7 +377,7 @@ function playSound(type, volume) {
     gain.gain.value = volume;
 
     if (type === 'ding') {
-      // 띨롱: two rising tones
+      // Ding: two rising tones
       [880, 1108].forEach((freq, i) => {
         const osc = ctx.createOscillator();
         osc.type = 'sine';
@@ -387,7 +387,7 @@ function playSound(type, volume) {
         osc.stop(ctx.currentTime + i * 0.15 + 0.2);
       });
     } else if (type === 'dingdong') {
-      // 딩동: classic two-tone
+      // Ding-Dong: classic two-tone
       [660, 523].forEach((freq, i) => {
         const osc = ctx.createOscillator();
         osc.type = 'sine';
@@ -397,7 +397,7 @@ function playSound(type, volume) {
         osc.stop(ctx.currentTime + i * 0.25 + 0.3);
       });
     } else if (type === 'chime') {
-      // 뾰로롱: ascending sparkle
+      // Chime: ascending sparkle
       [523, 659, 784, 1047].forEach((freq, i) => {
         const osc = ctx.createOscillator();
         osc.type = 'triangle';
@@ -409,7 +409,7 @@ function playSound(type, volume) {
         osc.stop(ctx.currentTime + i * 0.1 + 0.15);
       });
     } else if (type === 'tada') {
-      // 짠!: triumphant chord
+      // Ta-da!: triumphant chord
       [523, 659, 784].forEach((freq) => {
         const osc = ctx.createOscillator();
         osc.type = 'square';
@@ -422,7 +422,7 @@ function playSound(type, volume) {
         osc.stop(ctx.currentTime + 0.5);
       });
     } else if (type === 'bell') {
-      // 벨소리: bell-like tone
+      // Bell: bell-like tone
       const osc = ctx.createOscillator();
       osc.type = 'sine';
       osc.frequency.value = 830;
