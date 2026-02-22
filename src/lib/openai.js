@@ -68,10 +68,13 @@ You MUST output ONLY a pure JSON object containing an array of objects under the
 Example output format:
 {"ideas": [{"title": "Idea Title", "content": "Idea content..."}, ...]}`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
             system_instruction: { parts: [{ text: systemMessage }] },
             contents: [{ parts: [{ text: prompt }] }],
@@ -93,7 +96,11 @@ Example output format:
         throw new Error(errMsg);
     }
     const data = await response.json();
-    const content = data.candidates[0].content.parts[0].text;
+    const candidate = data.candidates?.[0];
+    if (!candidate || !candidate.content?.parts?.[0]?.text) {
+        throw new Error('Gemini returned no content. The response may have been blocked by safety filters.');
+    }
+    const content = candidate.content.parts[0].text;
     const parsed = JSON.parse(content);
     return parsed.ideas || [];
 }
@@ -121,10 +128,13 @@ You MUST return a JSON object with this exact structure for the selected ideas:
   ]
 }`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
             system_instruction: { parts: [{ text: evalSystemMessage }] },
             contents: [{ parts: [{ text: `User Prompt: ${prompt}\n\nIdeas to Evaluate:\n${JSON.stringify(ideasArray)}` }] }],
@@ -146,7 +156,11 @@ You MUST return a JSON object with this exact structure for the selected ideas:
         throw new Error(errMsg);
     }
     const data = await response.json();
-    const content = data.candidates[0].content.parts[0].text;
+    const candidate = data.candidates?.[0];
+    if (!candidate || !candidate.content?.parts?.[0]?.text) {
+        throw new Error('Gemini returned no content during evaluation. The response may have been blocked by safety filters.');
+    }
+    const content = candidate.content.parts[0].text;
     const result = JSON.parse(content);
     return (result.evaluations || []).map(item => ({
         title: item.title || "Untitled Idea",
@@ -214,12 +228,8 @@ Example output format:
         const parsed = parseLLMJson(content);
         return parsed.ideas || [];
     } catch (error) {
-        try {
-            if (error && error.error && error.error.message) {
-                throw new Error(error.error.message);
-            }
-        } catch (e) { }
-        throw new Error(error.message || "Failed to generate ideas.");
+        const msg = error?.error?.message || error?.message || "Failed to generate ideas.";
+        throw new Error(msg);
     }
 }
 
@@ -310,10 +320,13 @@ async function enhanceWithGeminiNative(providerConfig, prompt) {
     const { apiKey, model } = providerConfig;
     const systemMessage = `You are an expert prompt engineer. The user will give you a rough topic or seed. Rewrite it into a clear, direct English command asking for creative ideas about that topic. Format: "Find me creative ideas for [topic/expanded description]". Output ONLY the rewritten prompt string, nothing else.`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
             system_instruction: { parts: [{ text: systemMessage }] },
             contents: [{ parts: [{ text: prompt }] }],
@@ -326,7 +339,11 @@ async function enhanceWithGeminiNative(providerConfig, prompt) {
         throw new Error(`Gemini Enhancement failed: ${response.statusText}`);
     }
     const data = await response.json();
-    return data.candidates[0].content.parts[0].text.trim();
+    const candidate = data.candidates?.[0];
+    if (!candidate || !candidate.content?.parts?.[0]?.text) {
+        throw new Error('Gemini returned no content during prompt enhancement.');
+    }
+    return candidate.content.parts[0].text.trim();
 }
 
 /**

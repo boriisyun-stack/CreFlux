@@ -60,7 +60,7 @@ export const {
     },
 });
 
-export const gloablStyles = globalCss({
+export const globalStyles = globalCss({
     '@import': [
         "url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap')"
     ],

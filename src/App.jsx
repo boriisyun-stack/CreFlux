@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { generateIdeas, evaluateIdeasBatch, enhancePrompt } from './lib/openai';
 import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices } from 'lucide-react';
-import { styled, gloablStyles, keyframes } from './stitches.config';
+import { styled, globalStyles, keyframes } from './stitches.config';
 import { RANDOM_PROMPTS } from './lib/prompts';
 
 // Initialize global styles
-gloablStyles();
+globalStyles();
 
 const PROVIDERS = {
   openai: { name: 'OpenAI', defaultBase: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
@@ -30,11 +30,6 @@ const spin = keyframes({
 
 const slideUp = keyframes({
   from: { opacity: 0, transform: 'translateY(20px)' },
-  to: { opacity: 1, transform: 'translateY(0)' }
-});
-
-const fadeIn = keyframes({
-  from: { opacity: 0, transform: 'translateY(-10px)' },
   to: { opacity: 1, transform: 'translateY(0)' }
 });
 
@@ -562,12 +557,6 @@ export default function App() {
   const [showGenerate, setShowGenerate] = useState(true);
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
 
-  // Persist bookmarks in localStorage
-  const [savedIdeas, setSavedIdeas] = useState(() => {
-    const saved = localStorage.getItem('creflux_bookmarks');
-    return saved ? JSON.parse(saved) : [];
-  });
-
   const handleProviderChange = (e) => {
     const newProv = e.target.value;
     setProvider(newProv);
@@ -582,6 +571,7 @@ export default function App() {
     if (!finalApiKey) {
       setError("Please enter your API key in the configuration panel.");
       setShowSettings(true);
+      setIsHeaderOpen(true); // Ensure master panel is visible
       return;
     }
     if (!prompt.trim()) {
@@ -632,19 +622,24 @@ export default function App() {
     setPrompt(RANDOM_PROMPTS[randomIndex]);
   };
 
-  const getScoreColor = (score) => {
+  const getScoreColor = useCallback((score) => {
     if (score >= 75) return 'high';
     if (score >= 40) return 'medium';
     return 'low';
-  };
+  }, []);
 
 
-  const handleCopy = (item, index) => {
+  const handleCopy = useCallback((item, index) => {
     const copyText = `${item.title ? `[${item.title}]\n` : ''}${item.idea}\n\nReasoning: ${item.evaluation.reasoning}\nSyntax: ${item.evaluation.syntax} | Feasibility: ${item.evaluation.feasibility} | Relevance: ${item.evaluation.relevance}`;
-    navigator.clipboard.writeText(copyText);
+    try {
+      navigator.clipboard.writeText(copyText);
+    } catch (e) {
+      // Clipboard API may fail in insecure contexts (non-HTTPS)
+      console.warn('Clipboard write failed:', e);
+    }
     setCopiedId(index);
     setTimeout(() => setCopiedId(null), 2000);
-  };
+  }, []);
 
   return (
     <RootContainer>
@@ -721,7 +716,7 @@ export default function App() {
                             max="4"
                             step="1"
                             value={sliderIndex}
-                            onChange={(e) => setSliderIndex(parseInt(e.target.value))}
+                            onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
                           />
                         </SliderContainer>
                       </FormGroup>
@@ -755,21 +750,16 @@ export default function App() {
                         </ErrorMessage>
                       )}
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-                        <Button
-                          onClick={handleGenerate}
-                          disabled={isGenerating}
-                        >
-                          {isGenerating ? (
-                            <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
-                          ) : (
-                            <><Sparkles size={20} /> Ignite Imagination</>
-                          )}
-                        </Button>
-                        <SecondaryButton onClick={() => alert('History panel coming soon!')}>
-                          <History size={20} /> History
-                        </SecondaryButton>
-                      </div>
+                      <Button
+                        onClick={handleGenerate}
+                        disabled={isGenerating}
+                      >
+                        {isGenerating ? (
+                          <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
+                        ) : (
+                          <><Sparkles size={20} /> Ignite Imagination</>
+                        )}
+                      </Button>
                     </div>
                   </ToggleBody>
                 </GlassPanel>
@@ -798,7 +788,7 @@ export default function App() {
           {!isGenerating && results.length > 0 && (
             <IdeasList>
               {results.map((item, index) => (
-                <IdeaCard key={index} style={{ animationDelay: `${index * 0.1}s` }}>
+                <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
                   <CopyButton onClick={() => handleCopy(item, index)} title="Copy Idea">
                     {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                   </CopyButton>
