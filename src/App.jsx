@@ -63,12 +63,12 @@ const StickyHeader = styled('div', {
   flexDirection: 'column',
   gap: '$4',
   transition: 'all 0.3s ease',
-  paddingBottom: '3.5rem', // Increased to avoid toggle button overlapping content
+  paddingBottom: '4rem', // More breathing room for the bottom toggle button
 });
 
 const MasterToggleBtn = styled('button', {
   position: 'absolute',
-  bottom: '-12px', // Positioned slightly below the sticky header's bottom edge
+  bottom: '-16px', // Shifted lower to stay outside the panel border
   left: '50%',
   transform: 'translateX(-50%)',
   background: 'linear-gradient(135deg, $primary, $secondary)',
@@ -177,12 +177,9 @@ const FormGroup = styled('div', {
 });
 
 const FormRow = styled('div', {
-  display: 'flex',
-  flexWrap: 'wrap',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
   gap: '$3',
-  '& > div': {
-    flex: '1 1 200px', // Allow them to grow and shrink, but wrap if below 200px
-  }
 });
 
 const Label = styled('label', {
