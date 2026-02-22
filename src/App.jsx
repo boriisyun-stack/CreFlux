@@ -501,6 +501,17 @@ const ToggleHeader = styled('div', {
   cursor: 'pointer',
   userSelect: 'none',
   paddingBottom: '$2', // extra padding space for when toggled
+  transition: 'transform 0.3s ease',
+  variants: {
+    open: {
+      true: {
+        transform: 'translateY(6px)',
+      },
+      false: {
+        transform: 'translateY(0)',
+      }
+    }
+  }
 });
 
 const ToggleBody = styled('div', {
@@ -655,7 +666,7 @@ export default function App() {
             <div>
               <PanelsSplit>
                 <GlassPanel open={showSettings}>
-                  <ToggleHeader onClick={() => setShowSettings(!showSettings)}>
+                  <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
                     <h2><Settings size={20} /> AI Configuration</h2>
                     {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                   </ToggleHeader>
@@ -724,7 +735,7 @@ export default function App() {
                 </GlassPanel>
 
                 <GlassPanel open={showGenerate}>
-                  <ToggleHeader onClick={() => setShowGenerate(!showGenerate)}>
+                  <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
                     <h2><Sparkles size={20} /> Generate Ideas</h2>
                     {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                   </ToggleHeader>
