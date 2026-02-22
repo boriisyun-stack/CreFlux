@@ -193,6 +193,7 @@ const Label = styled('label', {
 
 const inputShared = {
   width: '100%',
+  boxSizing: 'border-box', // Ensure padding doesn't widen the element beyond 100%
   background: 'rgba(255, 255, 255, 0.8)',
   border: '1px solid $border',
   color: '$text',
