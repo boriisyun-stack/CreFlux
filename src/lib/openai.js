@@ -32,6 +32,66 @@ function normalizeJsonText(text) {
         .trim();
 }
 
+function extractJsonBlocks(text) {
+    const blocks = [];
+    const openerSet = new Set(['{', '[']);
+    const closerMap = { '{': '}', '[': ']' };
+
+    for (let i = 0; i < text.length; i += 1) {
+        const startChar = text[i];
+        if (!openerSet.has(startChar)) continue;
+
+        const stack = [startChar];
+        let inString = false;
+        let escaped = false;
+
+        for (let j = i + 1; j < text.length; j += 1) {
+            const ch = text[j];
+
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+                if (ch === '\\') {
+                    escaped = true;
+                    continue;
+                }
+                if (ch === '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (ch === '"') {
+                inString = true;
+                continue;
+            }
+
+            if (openerSet.has(ch)) {
+                stack.push(ch);
+                continue;
+            }
+
+            if (ch === '}' || ch === ']') {
+                const last = stack[stack.length - 1];
+                if (!last || closerMap[last] !== ch) {
+                    break;
+                }
+                stack.pop();
+
+                if (stack.length === 0) {
+                    blocks.push(text.slice(i, j + 1));
+                    i = j;
+                    break;
+                }
+            }
+        }
+    }
+
+    return blocks;
+}
+
 function tryParseJsonCandidate(candidate) {
     const normalized = normalizeJsonText(candidate);
     try {
@@ -57,13 +117,14 @@ function parseLLMJson(content) {
 
     const text = stripCodeFence(asString(content));
     const candidates = [text];
-    const objectMatch = text.match(/\{[\s\S]*\}/);
-    const arrayMatch = text.match(/\[[\s\S]*\]/);
+    const jsonBlocks = extractJsonBlocks(text);
 
-    if (objectMatch) candidates.push(objectMatch[0]);
-    if (arrayMatch) {
-        candidates.push(`{"ideas":${arrayMatch[0]}}`);
-        candidates.push(`{"evaluations":${arrayMatch[0]}}`);
+    for (const block of jsonBlocks) {
+        candidates.push(block);
+        if (block.startsWith('[')) {
+            candidates.push(`{"ideas":${block}}`);
+            candidates.push(`{"evaluations":${block}}`);
+        }
     }
 
     for (const candidate of [...new Set(candidates)]) {
