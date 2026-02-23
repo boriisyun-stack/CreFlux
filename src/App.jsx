@@ -15,7 +15,96 @@ const PROVIDERS = {
   custom: { name: 'Custom', defaultBase: '', defaultModel: '' },
 };
 
-const SLIDER_LABELS = ["복붙", "참고", "일반", "창작", "창의성"];
+const SLIDER_LABELS = {
+  en: ["Copy and Paste", "Reference", "Normal", "Create", "Creativity"],
+  ko: ["복붙", "참고", "일반", "창작", "창의성"]
+};
+
+// --- i18n DICTIONARY ---
+const t = {
+  en: {
+    appTitle: "CreFlux",
+    appSubtitle: "Make your idea with AI's hallucination",
+    settingsTitle: "AI Configuration",
+    settingsDesc: "Fine-tune your model parameters for the perfect output.",
+    provider: "API PROVIDER",
+    apiKey: "API KEY",
+    apiKeyPlaceholder: "Enter API Key",
+    modelName: "MODEL NAME",
+    modelPlaceholder: "e.g. gpt-4o",
+    baseUrl: "BASE URL (OPTIONAL OVERRIDE)",
+    hallucLevel: "HALLUCINATION LEVEL",
+    precise: "PRECISE",
+    creative: "CREATIVE",
+    generateTitle: "Generate Ideas",
+    promptPlaceholder: "Describe your vision in detail... e.g. 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z.'",
+    promptRandBtn: "Use a random prompt",
+    igniteBtn: "Ignite Imagination",
+    connecting: "Connecting Synapses...",
+    hideConfig: "Hide Configuration",
+    showConfig: "Show Configuration",
+    evaluating: "Evaluating proposed solutions...",
+    spawning: "Spawning Ideas...",
+    ideaCopy: "Copy Idea",
+    syntax: "Syntax",
+    feasibility: "Feasibility",
+    relevance: "Relevance",
+    reasoningPrefix: "AI Reasoning:",
+    translateBtnEn: "Translate to English",
+    translateBtnKo: "Translate to Korean",
+    translating: "Translating...",
+    copyFormatTitle: "Copy Format",
+    presets: "Presets",
+    customP: "Customize directly or select a preset above. Available variables:",
+    customLabel: "Custom Format Template",
+    preview: "Preview",
+    errNoKey: "Please enter your API key in the configuration panel.",
+    errNoPrompt: "Please provide a prompt snippet to guide the generation rules.",
+    errNoIdea: "No ideas were generated. Try tweaking the prompt or checking the model.",
+    errGlobal: "An error occurred: "
+  },
+  ko: {
+    appTitle: "CreFlux",
+    appSubtitle: "AI의 환각을 이용해 당신의 아이디어를 구체화하세요",
+    settingsTitle: "AI 설정",
+    settingsDesc: "완벽한 결과물을 위해 모델 매개변수를 조정하세요.",
+    provider: "API 제공자",
+    apiKey: "API 키",
+    apiKeyPlaceholder: "API 키 입력",
+    modelName: "모델 이름",
+    modelPlaceholder: "예: gpt-4o",
+    baseUrl: "기본 URL (선택 사항)",
+    hallucLevel: "환각(창의성) 레벨",
+    precise: "정확함",
+    creative: "창의적임",
+    generateTitle: "아이디어 생성",
+    promptPlaceholder: "설명할 비전을 입력하세요... 예: 'Z세대를 겨냥한 지속가능한 패션 산업을 위한 혁신적인 스타트업 아이디어 10개 생성해줘.'",
+    promptRandBtn: "무작위 프롬프트 생성",
+    igniteBtn: "상상력 발화",
+    connecting: "시냅스 연결 중...",
+    hideConfig: "설정 숨기기",
+    showConfig: "설정 보기",
+    evaluating: "제시된 아이디어 검증 중...",
+    spawning: "아이디어 생성 중...",
+    ideaCopy: "아이디어 복사",
+    syntax: "구문",
+    feasibility: "실현 가능성",
+    relevance: "관련성",
+    reasoningPrefix: "AI의 분석 평가:",
+    translateBtnEn: "영어로 번역하기",
+    translateBtnKo: "한국어로 번역하기",
+    translating: "번역 중...",
+    copyFormatTitle: "복사 형식 설정",
+    presets: "빠른 프리셋",
+    customP: "직접 사용자 정의하거나 위에서 프리셋을 선택하세요. 사용 가능한 변수:",
+    customLabel: "사용자 정의 복사 양식",
+    preview: "미리보기",
+    errNoKey: "API 설정에서 호환 가능한 API 키를 입력해주세요.",
+    errNoPrompt: "어떤 생성 규칙을 가지고 만들까요? 프롬프트를 입력해주세요!",
+    errNoIdea: "아이디어가 생성되지 않았습니다. 프롬프트를 조정하거나 모델을 확인해보세요.",
+    errGlobal: "오류가 발생했습니다: "
+  }
+};
 
 // --- STITCHES COMPONENTS ---
 
@@ -681,9 +770,6 @@ const VariableList = styled('div', {
 });
 
 const SettingsGearBtn = styled('button', {
-  position: 'fixed',
-  top: '$5',
-  right: '$5',
   background: 'linear-gradient(135deg, $primary, $secondary)',
   border: 'none',
   cursor: 'pointer',
@@ -695,11 +781,41 @@ const SettingsGearBtn = styled('button', {
   justifyContent: 'center',
   transition: 'all 0.3s ease',
   boxShadow: '0 4px 20px rgba(255, 0, 110, 0.3)',
-  zIndex: 1000,
   '&:hover': {
     transform: 'rotate(45deg) scale(1.1)',
     boxShadow: '0 6px 25px rgba(58, 134, 255, 0.4)',
   },
+});
+
+const LangToggleBtn = styled('button', {
+  background: 'rgba(255,255,255,0.7)',
+  border: '1px solid $border',
+  backdropFilter: 'blur(5px)',
+  cursor: 'pointer',
+  color: '$text',
+  padding: '0.6rem 1rem',
+  fontSize: '0.85rem',
+  fontWeight: 700,
+  borderRadius: '$round',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.2s ease',
+  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
+  '&:hover': {
+    background: 'white',
+    transform: 'scale(1.05)',
+    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
+  },
+});
+
+const TopRightControls = styled('div', {
+  position: 'fixed',
+  top: '$5',
+  right: '$5',
+  display: 'flex',
+  gap: '$3',
+  zIndex: 1000,
 });
 
 const ToggleHeader = styled('div', {
@@ -785,6 +901,8 @@ export default function App() {
     try { return parseFloat(localStorage.getItem('creflux_sound_volume') ?? '0.5'); } catch { return 0.5; }
   });
 
+  const [lang, setLang] = useState('en');
+
   const handleProviderChange = (e) => {
     const newProv = e.target.value;
     setProvider(newProv);
@@ -797,19 +915,19 @@ export default function App() {
   const handleGenerate = async () => {
     let finalApiKey = apiKey.trim();
     if (!finalApiKey) {
-      setError("API 설정에서 호환 가능한 API 키를 입력해주세요.");
+      setError(t[lang].errNoKey);
       setShowSettings(true);
       setIsHeaderOpen(true); // Ensure master panel is visible
       return;
     }
     if (!prompt.trim()) {
-      setError("어떤 생성 규칙을 가지고 만들까요? 프롬프트를 입력해주세요!");
+      setError(t[lang].errNoPrompt);
       return;
     }
 
     setError(null);
     setIsGenerating(true);
-    setGenerationStep("시냅스 연결 중...");
+    setGenerationStep(t[lang].connecting);
     setResults([]);
 
     const providerConfig = {
@@ -822,12 +940,12 @@ export default function App() {
     try {
       const enhancedPrompt = await enhancePrompt(providerConfig, prompt);
 
-      setGenerationStep("제시된 아이디어 검증 중...");
+      setGenerationStep(t[lang].evaluating);
       const hallucinationLevel = sliderIndex * 0.5; // Maps 0-4 to 0.0-2.0
       const rawIdeas = await generateIdeas(providerConfig, enhancedPrompt, hallucinationLevel);
 
       if (!rawIdeas || rawIdeas.length === 0) {
-        throw new Error("아이디어가 생성되지 않았습니다. 프롬프트를 조정하거나 모델을 확인해보세요.");
+        throw new Error(t[lang].errNoIdea);
       }
 
       // Evaluate the batch of 100 ideas in one API call
@@ -842,7 +960,7 @@ export default function App() {
       setShowSettings(false);
 
     } catch (err) {
-      setError('오류가 발생했습니다: ' + err.message);
+      setError(t[lang].errGlobal + err.message);
       setIsHeaderOpen(true);
     } finally {
       setIsGenerating(false);
@@ -870,11 +988,13 @@ export default function App() {
     setIsTranslating(prev => ({ ...prev, [index]: true }));
 
     try {
-      const textsToTranslate = [idea.title, idea.idea, idea.evaluation.reasoning]; // Changed 'content' to 'idea'
+      const textsToTranslate = [idea.title, idea.idea, idea.evaluation.reasoning];
+      const targetLang = lang === 'en' ? 'ko' : 'en'; // Translate to the opposite language
+
       const response = await fetch('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texts: textsToTranslate, targetLang: 'ko' })
+        body: JSON.stringify({ texts: textsToTranslate, targetLang })
       });
 
       if (!response.ok) throw new Error('Translation failed');
@@ -926,138 +1046,169 @@ export default function App() {
     <>
       <RootContainer>
         <AppContainer>
-          <StickyHeader>
-            <Header>
-              <h1>CreFlux</h1>
-              <p>
-                AI의 환각을 이용해 당신의 아이디어를 구체화하세요
-              </p>
-            </Header>
+          <Header>
+            <h1>{t[lang].appTitle}</h1>
+            <p>
+              {t[lang].appSubtitle}
+            </p>
+          </Header>
 
-            <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="복사 형식 설정">
-              <Settings size={27} />
+          <TopRightControls>
+            <LangToggleBtn onClick={() => setLang(lang === 'en' ? 'ko' : 'en')} title="Toggle Language">
+              {lang === 'en' ? '🇺🇸 EN' : '🇰🇷 KR'}
+            </LangToggleBtn>
+            <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
+              <Settings size={24} />
             </SettingsGearBtn>
+          </TopRightControls>
 
-            <ToggleBody open={isHeaderOpen}>
-              <div>
-                <PanelsSplit>
-                  <GlassPanel open={showSettings}>
-                    <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
-                      <h2><Settings size={20} /> AI 설정</h2>
-                      {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                    </ToggleHeader>
+          {error && (
+            <ErrorMessage>
+              <AlertCircle size={20} />
+              {error}
+            </ErrorMessage>
+          )}
 
-                    <ToggleBody open={showSettings}>
-                      <div>
+          <StickyHeader>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <PanelsSplit>
+                <GlassPanel open={showSettings}>
+                  <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
+                    <h2><Settings size={20} /> {t[lang].settingsTitle}</h2>
+                    {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                  </ToggleHeader>
+
+                  <ToggleBody open={showSettings}>
+                    <div>
+                      <FormGroup>
+                        <Label>{t[lang].provider}</Label>
+                        <Select value={provider} onChange={handleProviderChange}>
+                          {Object.entries(PROVIDERS).map(([key, data]) => (
+                            <option key={key} value={key}>{data.name}</option>
+                          ))}
+                        </Select>
+                      </FormGroup>
+
+                      <FormRow>
                         <FormGroup>
-                          <Label>AI 제공자</Label>
-                          <Select value={provider} onChange={handleProviderChange}>
-                            {Object.entries(PROVIDERS).map(([key, data]) => (
-                              <option key={key} value={key}>{data.name}</option>
-                            ))}
-                          </Select>
-                        </FormGroup>
-
-                        <FormRow>
-                          <FormGroup>
-                            <Label>API 키</Label>
-                            <Input
-                              type="password"
-                              placeholder="API 키 입력"
-                              value={apiKey}
-                              onChange={(e) => setApiKey(e.target.value)}
-                            />
-                          </FormGroup>
-                          <FormGroup>
-                            <Label>모델 이름</Label>
-                            <Input
-                              type="text"
-                              placeholder="예: gpt-4o"
-                              value={model}
-                              onChange={(e) => setModel(e.target.value)}
-                            />
-                          </FormGroup>
-                        </FormRow>
-
-                        <FormGroup>
-                          <Label>기본 URL (선택 사항)</Label>
+                          <Label>{t[lang].apiKey}</Label>
                           <Input
-                            type="url"
-                            placeholder="https://api.openai.com/v1"
-                            value={baseURL}
-                            onChange={(e) => setBaseURL(e.target.value)}
-                            disabled={provider !== 'custom'}
+                            type="password"
+                            placeholder={t[lang].apiKeyPlaceholder}
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
                           />
                         </FormGroup>
 
                         <FormGroup>
-                          <SliderContainer>
-                            <SliderHeader>
-                              <Label style={{ marginBottom: 0 }}>환각(창의성) 레벨</Label>
-                              <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
-                            </SliderHeader>
-                            <SliderInput
-                              type="range"
-                              min="0"
-                              max="4"
-                              step="1"
-                              value={sliderIndex}
-                              onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
-                            />
-                          </SliderContainer>
-                        </FormGroup>
-                      </div>
-                    </ToggleBody>
-                  </GlassPanel>
-
-                  <GlassPanel open={showGenerate}>
-                    <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
-                      <h2><Sparkles size={20} /> 아이디어 생성</h2>
-                      {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                    </ToggleHeader>
-
-                    <ToggleBody open={showGenerate}>
-                      <div>
-                        <FormGroup style={{ position: 'relative' }}>
-                          <Textarea
-                            placeholder="문제, 주제 또는 씨앗을 입력하세요. 예: '대중교통을 혁신하는 방법' 또는 '수프를 먹는 새로운 방법'"
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
+                          <Label>{t[lang].modelName}</Label>
+                          <Input
+                            type="text"
+                            placeholder={t[lang].modelPlaceholder}
+                            value={model}
+                            onChange={(e) => setModel(e.target.value)}
                           />
-                          <RandomPromptBtn onClick={handleRandomPrompt} title="무작위 프롬프트 사용">
-                            <Dices size={18} />
-                          </RandomPromptBtn>
                         </FormGroup>
+                      </FormRow>
 
-                        {error && (
-                          <ErrorMessage>
-                            <AlertCircle size={20} />
-                            <span>{error}</span>
-                          </ErrorMessage>
+                      <FormGroup>
+                        <Label>{t[lang].baseUrl}</Label>
+                        <Input
+                          type="url"
+                          placeholder="https://api.openai.com/v1"
+                          value={baseURL}
+                          onChange={(e) => setBaseURL(e.target.value)}
+                          disabled={provider !== 'custom'}
+                        />
+                      </FormGroup>
+
+                      <FormGroup>
+                        <SliderContainer>
+                          <SliderHeader>
+                            <Label style={{ marginBottom: 0 }}>{t[lang].hallucLevel}</Label>
+                            <SliderValue>{SLIDER_LABELS[lang][sliderIndex]}</SliderValue>
+                          </SliderHeader>
+                          <SliderInput
+                            type="range"
+                            min="0"
+                            max="4"
+                            step="1"
+                            value={sliderIndex}
+                            onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888098', fontSize: '0.75rem', marginTop: '4px' }}>
+                            <span>{t[lang].precise}</span>
+                            <span>{t[lang].creative}</span>
+                          </div>
+                        </SliderContainer>
+                      </FormGroup>
+                    </div>
+                  </ToggleBody>
+                </GlassPanel>
+
+                <GlassPanel open={showGenerate}>
+                  <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
+                    <h2><Sparkles size={20} /> {t[lang].generateTitle}</h2>
+                    {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                  </ToggleHeader>
+
+                  <ToggleBody open={showGenerate}>
+                    <div>
+                      <FormGroup style={{ position: 'relative' }}>
+                        <Textarea
+                          placeholder={t[lang].promptPlaceholder}
+                          value={prompt}
+                          onChange={(e) => setPrompt(e.target.value)}
+                        />
+                        <RandomPromptBtn onClick={handleRandomPrompt} title={t[lang].promptRandBtn}>
+                          <Dices size={18} />
+                        </RandomPromptBtn>
+                      </FormGroup>
+
+                      <FormGroup style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: '$2' }}>
+                        <Label>Sound Volume</Label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '$3', background: 'rgba(255,255,255,0.7)', padding: '$2 $3', borderRadius: '$round', border: '1px solid var(--colors-border)' }}>
+                          <Volume2 size={16} color="var(--colors-textMuted)" />
+                          <SliderInput
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={soundVolume}
+                            onChange={(e) => {
+                              const v = parseFloat(e.target.value);
+                              setSoundVolume(v);
+                              try { localStorage.setItem('creflux_sound_volume', String(v)); } catch { }
+                            }}
+                            onMouseUp={() => playSound(soundVolume)}
+                            onTouchEnd={() => playSound(soundVolume)}
+                            style={{ width: '80px', height: '4px' }}
+                          />
+                          <span style={{ fontSize: '0.8rem', color: 'var(--colors-primary)', fontWeight: 600 }}>{Math.round(soundVolume * 100)}%</span>
+                        </div>
+                      </FormGroup>
+
+                      <Button
+                        onClick={handleGenerate}
+                        disabled={isGenerating}
+                      >
+                        {isGenerating ? (
+                          <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
+                        ) : (
+                          <><Sparkles size={20} /> {t[lang].igniteBtn}</>
                         )}
-
-                        <Button
-                          onClick={handleGenerate}
-                          disabled={isGenerating}
-                        >
-                          {isGenerating ? (
-                            <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
-                          ) : (
-                            <><Sparkles size={20} /> 상상력 발화</>
-                          )}
-                        </Button>
-                      </div>
-                    </ToggleBody>
-                  </GlassPanel>
-                </PanelsSplit>
-              </div>
-            </ToggleBody>
+                      </Button>
+                    </div>
+                  </ToggleBody>
+                </GlassPanel>
+              </PanelsSplit>
+            </div>
 
             <MasterToggleBtn onClick={() => setIsHeaderOpen(!isHeaderOpen)}>
               {isHeaderOpen ? (
-                <><ChevronUp size={20} /> 설정 숨기기</>
+                <><ChevronUp size={20} /> {t[lang].hideConfig}</>
               ) : (
-                <><ChevronDown size={20} /> 설정 보기</>
+                <><ChevronDown size={20} /> {t[lang].showConfig}</>
               )}
             </MasterToggleBtn>
           </StickyHeader>
@@ -1066,7 +1217,7 @@ export default function App() {
             {isGenerating && (
               <LoadingStateContainer>
                 <LargeLoader><Sparkles size={48} /></LargeLoader>
-                <h3>아이디어 생성 중...</h3>
+                <h3>{t[lang].spawning}</h3>
                 <p>{generationStep}</p>
               </LoadingStateContainer>
             )}
@@ -1075,53 +1226,56 @@ export default function App() {
               <IdeasList>
                 {results.map((item, index) => (
                   <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
-                    <CopyButton onClick={() => handleCopy(item, index)} title="아이디어 복사">
+                    <CopyButton onClick={() => handleCopy(item, index)} title={t[lang].copyIdea}>
                       {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                     </CopyButton>
                     {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
                     <IdeaContent>
-                      {item.idea}
+                      {item.idea.split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
                     </IdeaContent>
                     <IdeaMetrics>
                       <Metric>
-                        <MetricLabel>구문</MetricLabel>
+                        <MetricLabel>{t[lang].syntax}</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation.syntax)}>
                           {item.evaluation.syntax || 0}
                         </MetricValue>
                         <ProgressBarBg>
                           <ProgressBarFill
+                            css={{ width: `${item.evaluation.syntax || 0}%` }}
                             color={getScoreColor(item.evaluation.syntax)}
-                            style={{ width: `${item.evaluation.syntax || 0}%` }}
                           />
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>실현 가능성</MetricLabel>
+                        <MetricLabel>{t[lang].feasibility}</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation.feasibility)}>
                           {item.evaluation.feasibility || 0}
                         </MetricValue>
                         <ProgressBarBg>
                           <ProgressBarFill
+                            css={{ width: `${item.evaluation.feasibility || 0}%` }}
                             color={getScoreColor(item.evaluation.feasibility)}
-                            style={{ width: `${item.evaluation.feasibility || 0}%` }}
                           />
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>관련성</MetricLabel>
+                        <MetricLabel>{t[lang].relevance}</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation.relevance)}>
                           {item.evaluation.relevance || 0}
                         </MetricValue>
                         <ProgressBarBg>
                           <ProgressBarFill
+                            css={{ width: `${item.evaluation.relevance || 0}%` }}
                             color={getScoreColor(item.evaluation.relevance)}
-                            style={{ width: `${item.evaluation.relevance || 0}%` }}
                           />
                         </ProgressBarBg>
                       </Metric>
                     </IdeaMetrics>
                     {item.evaluation.reasoning && (
                       <Reasoning>
+                        <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--colors-text)' }}>
+                          {t[lang].reasoningPrefix}
+                        </strong>
                         "{item.evaluation.reasoning}"
                       </Reasoning>
                     )}
