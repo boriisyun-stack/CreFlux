@@ -49,6 +49,7 @@ const t = {
     syntax: "Syntax",
     feasibility: "Feasibility",
     relevance: "Relevance",
+    novelty: "Novelty",
     reasoningPrefix: "AI Reasoning:",
     translateBtnEn: "Translate to English",
     translateBtnKo: "Translate to Korean",
@@ -90,6 +91,7 @@ const t = {
     syntax: "구문",
     feasibility: "실현 가능성",
     relevance: "관련성",
+    novelty: "참신함",
     reasoningPrefix: "AI의 분석 평가:",
     translateBtnEn: "영어로 번역하기",
     translateBtnKo: "한국어로 번역하기",
@@ -401,7 +403,7 @@ const DEFAULT_COPY_FORMAT = `[{title}]
 {idea}
 
 Reasoning: {reasoning}
-Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}`;
+Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty: {novelty}`;
 
 const COPY_VARIABLES = [
   { key: '{title}', desc: 'Idea Title' },
@@ -409,6 +411,7 @@ const COPY_VARIABLES = [
   { key: '{syntax}', desc: 'Syntax Score' },
   { key: '{feasibility}', desc: 'Feasibility Score' },
   { key: '{relevance}', desc: 'Relevance Score' },
+  { key: '{novelty}', desc: 'Novelty Score' },
   { key: '{reasoning}', desc: 'Evaluation Reasoning' },
 ];
 
@@ -418,14 +421,14 @@ const FORMAT_PRESETS = [
 {idea}
 
 Reasoning: {reasoning}
-Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
+Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty: {novelty}` },
   {
     key: 'notion', name: 'Notion', format: `### {title}
 > {idea}
 
 **Reasoning:** {reasoning}
-**SYN:** {syntax} | **FEA:** {feasibility} | **REL:** {relevance}` },
-  { key: 'oneliner', name: 'One-liner', format: `[{title}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance})` },
+**SYN:** {syntax} | **FEA:** {feasibility} | **REL:** {relevance} | **NOV:** {novelty}` },
+  { key: 'oneliner', name: 'One-liner', format: `[{title}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance}/NOV:{novelty})` },
   {
     key: 'markdown', name: 'Markdown', format: `## {title}
 
@@ -436,6 +439,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
 - **Syntax:** {syntax}/100
 - **Feasibility:** {feasibility}/100
 - **Relevance:** {relevance}/100
+- **Novelty:** {novelty}/100
 
 > {reasoning}` },
   { key: 'simple', name: 'Simple', format: `{title}: {idea}` },
@@ -443,7 +447,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
     key: 'json', name: 'JSON', format: `{
   "title": "{title}",
   "idea": "{idea}",
-  "scores": { "syntax": {syntax}, "feasibility": {feasibility}, "relevance": {relevance} },
+  "scores": { "syntax": {syntax}, "feasibility": {feasibility}, "relevance": {relevance}, "novelty": {novelty} },
   "reasoning": "{reasoning}"
 }` },
 ];
@@ -451,7 +455,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance}` },
 const SAMPLE_IDEA = {
   title: 'Auto-Translate Earbuds',
   idea: 'Real-time translation AI earbuds that eliminate language barriers.',
-  evaluation: { syntax: 87, feasibility: 72, relevance: 94, reasoning: 'Technologically viable with high market demand.' },
+  evaluation: { syntax: 87, feasibility: 72, relevance: 94, novelty: 99, reasoning: 'Technologically viable with high market demand and groundbreaking execution.' },
 };
 
 function playSound(volume) {
@@ -606,7 +610,7 @@ const SliderInput = styled('input', {
 
 const IdeaMetrics = styled('div', {
   display: 'grid',
-  gridTemplateColumns: 'repeat(3, 1fr)',
+  gridTemplateColumns: 'repeat(4, 1fr)',
   gap: '$3',
   paddingTop: '$3',
   borderTop: '1px solid $border',
@@ -1027,6 +1031,7 @@ export default function App() {
       .replace(/\{syntax\}/g, String(item.evaluation?.syntax || 0))
       .replace(/\{feasibility\}/g, String(item.evaluation?.feasibility || 0))
       .replace(/\{relevance\}/g, String(item.evaluation?.relevance || 0))
+      .replace(/\{novelty\}/g, String(item.evaluation?.novelty || 0))
       .replace(/\{reasoning\}/g, item.evaluation?.reasoning || '');
     try {
       navigator.clipboard.writeText(copyText);
@@ -1270,6 +1275,18 @@ export default function App() {
                           />
                         </ProgressBarBg>
                       </Metric>
+                      <Metric>
+                        <MetricLabel>{t[lang].novelty}</MetricLabel>
+                        <MetricValue color={getScoreColor(item.evaluation.novelty)}>
+                          {item.evaluation.novelty || 0}
+                        </MetricValue>
+                        <ProgressBarBg>
+                          <ProgressBarFill
+                            css={{ width: `${item.evaluation.novelty || 0}%` }}
+                            color={getScoreColor(item.evaluation.novelty)}
+                          />
+                        </ProgressBarBg>
+                      </Metric>
                     </IdeaMetrics>
                     {item.evaluation.reasoning && (
                       <Reasoning>
@@ -1392,6 +1409,7 @@ export default function App() {
                   .replace(/\{syntax\}/g, String(SAMPLE_IDEA.evaluation.syntax))
                   .replace(/\{feasibility\}/g, String(SAMPLE_IDEA.evaluation.feasibility))
                   .replace(/\{relevance\}/g, String(SAMPLE_IDEA.evaluation.relevance))
+                  .replace(/\{novelty\}/g, String(SAMPLE_IDEA.evaluation.novelty))
                   .replace(/\{reasoning\}/g, SAMPLE_IDEA.evaluation.reasoning)}
               </pre>
 

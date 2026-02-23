@@ -114,6 +114,7 @@ For each selected idea, provide a score from 0 to 100 for the following 3 criter
 1. "syntax": Is it grammatically sound and structurally understandable? (0 = gibberish, 100 = perfect grammar)
 2. "feasibility": Even as a wild idea, is there a theoretical or imaginative way to execute it? (0 = impossible, 100 = executable)
 3. "relevance": Does it retain ANY structural or thematic connection to the original prompt? (0 = totally random, 100 = direct answer)
+4. "novelty": Is the idea exceptionally original, crazy, or unheard of? (0 = boring/cliché, 100 = mind-blowing/never seen before)
 
 You MUST respond entirely in English, including the reasoning.
 You MUST return a JSON object with this exact structure for the selected ideas:
@@ -125,6 +126,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
       "syntax": number,
       "feasibility": number,
       "relevance": number,
+      "novelty": number,
       "reasoning": "A concise 1-sentence explanation of these scores"
     }
   ]
@@ -171,6 +173,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
             syntax: item.syntax,
             feasibility: item.feasibility,
             relevance: item.relevance,
+            novelty: item.novelty,
             reasoning: item.reasoning
         }
     }));
@@ -268,6 +271,7 @@ For each selected idea, provide a score from 0 to 100 for the following 3 criter
 1. "syntax": Is it grammatically sound and structurally understandable? (0 = gibberish, 100 = perfect grammar)
 2. "feasibility": Even as a wild idea, is there a theoretical or imaginative way to execute it? (0 = impossible, 100 = executable)
 3. "relevance": Does it retain ANY structural or thematic connection to the original prompt? (0 = totally random, 100 = direct answer)
+4. "novelty": Is the idea exceptionally original, crazy, or unheard of? (0 = boring/cliché, 100 = mind-blowing/never seen before)
 
 You MUST respond entirely in English, including the reasoning.
 You MUST return a JSON object with this exact structure for the selected ideas:
@@ -279,6 +283,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
       "syntax": number,
       "feasibility": number,
       "relevance": number,
+      "novelty": number,
       "reasoning": "A concise 1-sentence explanation of these scores"
     }
   ]
@@ -310,6 +315,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
                 syntax: item.syntax,
                 feasibility: item.feasibility,
                 relevance: item.relevance,
+                novelty: item.novelty,
                 reasoning: item.reasoning
             }
         }));
