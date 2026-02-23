@@ -854,7 +854,7 @@ export default function App() {
     try {
       const enhancedPrompt = await enhancePrompt(providerConfig, prompt);
 
-      setGenerationStep("Evaluating proposed solutions...");
+      setGenerationStep("Spawning 100 ideas...");
       const hallucinationLevel = sliderIndex * 0.5; // Maps 0-4 to 0.0-2.0
       const rawIdeas = await generateIdeas(providerConfig, enhancedPrompt, hallucinationLevel);
 
@@ -862,7 +862,7 @@ export default function App() {
         throw new Error("No ideas were generated. Try tweaking the prompt or checking the model.");
       }
 
-      // Evaluate the batch of 100 ideas in one API call
+      setGenerationStep("Evaluating & expanding top 10...");
       const evaluatedIdeas = await evaluateIdeasBatch(providerConfig, prompt, rawIdeas);
       setResults(evaluatedIdeas);
 
