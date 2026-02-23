@@ -385,8 +385,34 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
 const SAMPLE_IDEA = {
   title: 'Auto-Translate Earbuds',
   idea: 'Real-time translation AI earbuds that eliminate language barriers.',
+  thoughtProcess: 'Need→Translate→Audio→Latency→Adoption',
   evaluation: { syntax: 87, feasibility: 72, relevance: 94, novelty: 99, reasoning: 'Technologically viable with high market demand and groundbreaking execution.' },
 };
+
+function buildFallbackResults(rawIdeas = []) {
+  return rawIdeas.slice(0, 10).map((idea, index) => {
+    const isObjectIdea = idea && typeof idea === 'object';
+    const title = isObjectIdea
+      ? (idea.t || idea.title || `Idea ${index + 1}`)
+      : `Idea ${index + 1}`;
+    const description = isObjectIdea
+      ? (idea.s || idea.content || idea.idea || title)
+      : String(idea || '').trim();
+
+    return {
+      title,
+      idea: description || title,
+      thoughtProcess: '',
+      evaluation: {
+        syntax: 50,
+        feasibility: 50,
+        relevance: 50,
+        novelty: 50,
+        reasoning: 'Evaluation output was empty, so this fallback result is displayed.',
+      },
+    };
+  });
+}
 
 function playSound(volume) {
   if (volume <= 0) return;
@@ -864,7 +890,8 @@ export default function App() {
 
       setGenerationStep("Evaluating & expanding top 10...");
       const evaluatedIdeas = await evaluateIdeasBatch(providerConfig, prompt, rawIdeas);
-      setResults(evaluatedIdeas);
+      const safeResults = Array.isArray(evaluatedIdeas) ? evaluatedIdeas.filter(Boolean) : [];
+      setResults(safeResults.length > 0 ? safeResults : buildFallbackResults(rawIdeas));
 
       // Play completion sound
       playSound(soundVolume);
@@ -897,17 +924,20 @@ export default function App() {
 
 
   const handleCopy = useCallback((item, index) => {
+    const evaluation = item?.evaluation || {};
     const copyText = copyFormat
-      .replace(/\{title\}/g, item.title || '')
-      .replace(/\{thoughtProcess\}/g, item.thoughtProcess || '')
-      .replace(/\{idea\}/g, item.idea || '')
-      .replace(/\{syntax\}/g, String(item.evaluation?.syntax || 0))
-      .replace(/\{feasibility\}/g, String(item.evaluation?.feasibility || 0))
-      .replace(/\{relevance\}/g, String(item.evaluation?.relevance || 0))
-      .replace(/\{novelty\}/g, String(item.evaluation?.novelty || 0))
-      .replace(/\{reasoning\}/g, item.evaluation?.reasoning || '');
+      .replace(/\{title\}/g, item?.title || '')
+      .replace(/\{thoughtProcess\}/g, item?.thoughtProcess || '')
+      .replace(/\{idea\}/g, item?.idea || '')
+      .replace(/\{syntax\}/g, String(evaluation.syntax || 0))
+      .replace(/\{feasibility\}/g, String(evaluation.feasibility || 0))
+      .replace(/\{relevance\}/g, String(evaluation.relevance || 0))
+      .replace(/\{novelty\}/g, String(evaluation.novelty || 0))
+      .replace(/\{reasoning\}/g, evaluation.reasoning || '');
     try {
-      navigator.clipboard.writeText(copyText);
+      navigator.clipboard.writeText(copyText).catch((e) => {
+        console.warn('Clipboard write failed:', e);
+      });
     } catch (e) {
       console.warn('Clipboard write failed:', e);
     }
@@ -917,7 +947,11 @@ export default function App() {
 
   const handleCopyFormatChange = (val) => {
     setCopyFormat(val);
-    try { localStorage.setItem('creflux_copy_format', val); } catch { }
+    try {
+      localStorage.setItem('creflux_copy_format', val);
+    } catch (e) {
+      console.warn('Failed to persist copy format:', e);
+    }
   };
 
   return (
@@ -1054,7 +1088,11 @@ export default function App() {
                               onChange={(e) => {
                                 const v = parseFloat(e.target.value);
                                 setSoundVolume(v);
-                                try { localStorage.setItem('creflux_sound_volume', String(v)); } catch { }
+                                try {
+                                  localStorage.setItem('creflux_sound_volume', String(v));
+                                } catch (err) {
+                                  console.warn('Failed to persist sound volume:', err);
+                                }
                               }}
                               onMouseUp={() => playSound(soundVolume)}
                               onTouchEnd={() => playSound(soundVolume)}
@@ -1114,9 +1152,9 @@ export default function App() {
                       {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                     </CopyButton>
                     {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
-                    {item.thoughtProcess && (
+                    {String(item.thoughtProcess || '').trim() && (
                       <ThoughtChain>
-                        {item.thoughtProcess.split('→').map((node, i, arr) => (
+                        {String(item.thoughtProcess).split('→').map((node, i, arr) => (
                           <React.Fragment key={i}>
                             <span style={{ padding: '2px 6px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
                               {node.trim()}
@@ -1127,64 +1165,64 @@ export default function App() {
                       </ThoughtChain>
                     )}
                     <IdeaContent>
-                      {item.idea.split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
+                      {String(item.idea || '').split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
                     </IdeaContent>
                     <IdeaMetrics>
                       <Metric>
                         <MetricLabel>Syntax</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation.syntax)}>
-                          {item.evaluation.syntax || 0}
+                        <MetricValue color={getScoreColor(item.evaluation?.syntax)}>
+                          {item.evaluation?.syntax || 0}
                         </MetricValue>
                         <ProgressBarBg>
                           <ProgressBarFill
-                            css={{ width: `${item.evaluation.syntax || 0}%` }}
-                            color={getScoreColor(item.evaluation.syntax)}
+                            css={{ width: `${item.evaluation?.syntax || 0}%` }}
+                            color={getScoreColor(item.evaluation?.syntax)}
                           />
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
                         <MetricLabel>Feasibility</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation.feasibility)}>
-                          {item.evaluation.feasibility || 0}
+                        <MetricValue color={getScoreColor(item.evaluation?.feasibility)}>
+                          {item.evaluation?.feasibility || 0}
                         </MetricValue>
                         <ProgressBarBg>
                           <ProgressBarFill
-                            css={{ width: `${item.evaluation.feasibility || 0}%` }}
-                            color={getScoreColor(item.evaluation.feasibility)}
+                            css={{ width: `${item.evaluation?.feasibility || 0}%` }}
+                            color={getScoreColor(item.evaluation?.feasibility)}
                           />
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
                         <MetricLabel>Relevance</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation.relevance)}>
-                          {item.evaluation.relevance || 0}
+                        <MetricValue color={getScoreColor(item.evaluation?.relevance)}>
+                          {item.evaluation?.relevance || 0}
                         </MetricValue>
                         <ProgressBarBg>
                           <ProgressBarFill
-                            css={{ width: `${item.evaluation.relevance || 0}%` }}
-                            color={getScoreColor(item.evaluation.relevance)}
+                            css={{ width: `${item.evaluation?.relevance || 0}%` }}
+                            color={getScoreColor(item.evaluation?.relevance)}
                           />
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
                         <MetricLabel>Novelty</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation.novelty)}>
-                          {item.evaluation.novelty || 0}
+                        <MetricValue color={getScoreColor(item.evaluation?.novelty)}>
+                          {item.evaluation?.novelty || 0}
                         </MetricValue>
                         <ProgressBarBg>
                           <ProgressBarFill
-                            css={{ width: `${item.evaluation.novelty || 0}%` }}
-                            color={getScoreColor(item.evaluation.novelty)}
+                            css={{ width: `${item.evaluation?.novelty || 0}%` }}
+                            color={getScoreColor(item.evaluation?.novelty)}
                           />
                         </ProgressBarBg>
                       </Metric>
                     </IdeaMetrics>
-                    {item.evaluation.reasoning && (
+                    {item.evaluation?.reasoning && (
                       <Reasoning>
                         <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--colors-text)' }}>
                           AI Reasoning:
                         </strong>
-                        "{item.evaluation.reasoning}"
+                        "{item.evaluation?.reasoning}"
                       </Reasoning>
                     )}
                   </IdeaCard>
@@ -1262,6 +1300,7 @@ export default function App() {
               }}>
                 {copyFormat
                   .replace(/\{title\}/g, SAMPLE_IDEA.title)
+                  .replace(/\{thoughtProcess\}/g, SAMPLE_IDEA.thoughtProcess)
                   .replace(/\{idea\}/g, SAMPLE_IDEA.idea)
                   .replace(/\{syntax\}/g, String(SAMPLE_IDEA.evaluation.syntax))
                   .replace(/\{feasibility\}/g, String(SAMPLE_IDEA.evaluation.feasibility))
@@ -1302,7 +1341,15 @@ export default function App() {
                     value={soundVolume}
                     onMouseUp={() => playSound(soundVolume)}
                     onTouchEnd={() => playSound(soundVolume)}
-                    onChange={(e) => { const v = parseFloat(e.target.value); setSoundVolume(v); try { localStorage.setItem('creflux_sound_volume', String(v)); } catch { } }}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      setSoundVolume(v);
+                      try {
+                        localStorage.setItem('creflux_sound_volume', String(v));
+                      } catch (err) {
+                        console.warn('Failed to persist sound volume:', err);
+                      }
+                    }}
                     style={{ width: '100%', accentColor: '#FF006E' }}
                   />
                   <p style={{ fontSize: '0.7rem', color: 'var(--colors-textMuted)', marginTop: '0.4rem' }}>

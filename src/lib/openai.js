@@ -1,51 +1,122 @@
 import OpenAI from 'openai';
 
-function parseLLMJson(content) {
-    const match = content.match(/\{[\s\S]*\}/);
-    let jsonStr = match ? match[0] : content;
+function asString(value) {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value.trim();
+    if (Array.isArray(value)) return value.map(asString).filter(Boolean).join(' ');
+    if (typeof value === 'object') {
+        return asString(value.text ?? value.content ?? value.value ?? '');
+    }
+    return String(value).trim();
+}
 
-    jsonStr = jsonStr.replace(/[\n\r\t]/g, ' ');
-    jsonStr = jsonStr.replace(/"(\w+)\s+(\w+)"\s*:/g, '"$1$2":');
-    jsonStr = jsonStr.replace(/,\s*,+/g, ',');
-    jsonStr = jsonStr.replace(/,\s*([\]\}])/g, '$1');
+function clampScore(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(100, Math.round(n)));
+}
 
+function stripCodeFence(text) {
+    return text
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/```$/i, '')
+        .replace(/```/g, '')
+        .trim();
+}
+
+function normalizeJsonText(text) {
+    return text
+        .replace(/[\u201C\u201D]/g, '"')
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/,\s*([}\]])/g, '$1')
+        .trim();
+}
+
+function tryParseJsonCandidate(candidate) {
+    const normalized = normalizeJsonText(candidate);
     try {
-        return JSON.parse(jsonStr);
-    } catch (e1) {
-        let repaired = jsonStr
-            .replace(/\[\s*\\"/g, '["')
-            .replace(/\\"\s*\]/g, '"]')
-            .replace(/\\"\s*,\s*\\"/g, '","')
-            .replace(/:\s*\\"/g, ':"')
-            .replace(/\\"\s*,/g, '",');
-
+        return JSON.parse(normalized);
+    } catch {
+        const pythonic = normalized
+            .replace(/:\s*'([^']*)'/g, ':"$1"')
+            .replace(/'([^']*)'\s*:/g, '"$1":')
+            .replace(/\[\s*'([^']*)'\s*\]/g, '["$1"]')
+            .replace(/'\s*,\s*'/g, '","');
         try {
-            return JSON.parse(repaired);
-        } catch (e2) {
-            let pythonic = repaired
-                .replace(/[""]/g, '"')
-                .replace(/:\s*'([^']*)'/g, ':"$1"')
-                .replace(/'([^']*)'\s*:/g, '"$1":')
-                .replace(/\[\s*'/g, '["')
-                .replace(/'\s*\]/g, '"]')
-                .replace(/'\s*,\s*'/g, '","')
-                .replace(/,\s*,+/g, ',')
-                .replace(/,\s*([\}\]])/g, '$1');
-
-            try {
-                return JSON.parse(pythonic);
-            } catch (e3) {
-                const ideasMatch = pythonic.match(/"idea\w*"\s*:\s*\[([\s\S]*?)\]/);
-                if (ideasMatch && ideasMatch[1]) {
-                    const items = ideasMatch[1].match(/"([^"]+)"/g) || [];
-                    if (items.length > 0) {
-                        return { ideas: items.map(s => s.replace(/^"|"$/g, '').trim()).filter(s => s.length > 2) };
-                    }
-                }
-                throw new Error("JSON parse error: " + e1.message + " — Output snippet: " + jsonStr.substring(0, 120));
-            }
+            return JSON.parse(pythonic);
+        } catch {
+            return null;
         }
     }
+}
+
+function parseLLMJson(content) {
+    if (!content) {
+        throw new Error('Model response is empty.');
+    }
+
+    const text = stripCodeFence(asString(content));
+    const candidates = [text];
+    const objectMatch = text.match(/\{[\s\S]*\}/);
+    const arrayMatch = text.match(/\[[\s\S]*\]/);
+
+    if (objectMatch) candidates.push(objectMatch[0]);
+    if (arrayMatch) {
+        candidates.push(`{"ideas":${arrayMatch[0]}}`);
+        candidates.push(`{"evaluations":${arrayMatch[0]}}`);
+    }
+
+    for (const candidate of [...new Set(candidates)]) {
+        const parsed = tryParseJsonCandidate(candidate);
+        if (parsed !== null) return parsed;
+    }
+
+    throw new Error(`JSON parse error: Invalid model output. Snippet: ${text.substring(0, 160)}`);
+}
+
+function normalizeIdeas(ideasLike) {
+    const rawIdeas = Array.isArray(ideasLike)
+        ? ideasLike
+        : Array.isArray(ideasLike?.ideas)
+            ? ideasLike.ideas
+            : [];
+
+    return rawIdeas
+        .map((item, index) => {
+            if (typeof item === 'string') {
+                const summary = item.trim();
+                if (!summary) return null;
+                const title = summary.length > 60 ? `${summary.slice(0, 57)}...` : summary;
+                return { t: title, s: summary };
+            }
+            if (!item || typeof item !== 'object') return null;
+
+            const summary = asString(item.s ?? item.summary ?? item.content ?? item.idea ?? item.description);
+            let title = asString(item.t ?? item.title ?? item.name ?? item.topic);
+
+            if (!title && summary) {
+                title = summary.split(/[.!?]/)[0].slice(0, 60).trim();
+            }
+            if (!title) title = `Idea ${index + 1}`;
+
+            return { t: title, s: summary || title };
+        })
+        .filter(Boolean);
+}
+
+function fallbackEvaluations(ideasArray) {
+    return normalizeIdeas(ideasArray).slice(0, 10).map((idea, index) => ({
+        title: idea.t || `Idea ${index + 1}`,
+        idea: idea.s || idea.t || '',
+        thoughtProcess: '',
+        evaluation: {
+            syntax: 50,
+            feasibility: 50,
+            relevance: 50,
+            novelty: 50,
+            reasoning: 'Structured evaluation was unavailable, so this fallback result is shown.',
+        },
+    }));
 }
 
 // ── Compact generation prompt (title + 1-line summary only) ──
@@ -70,19 +141,25 @@ async function generateWithGeminiNative(providerConfig, prompt, temperature) {
 
     if (!response.ok) {
         let errMsg = `Gemini API Error: ${response.statusText}`;
-        try { const e = await response.json(); if (e.error?.message) errMsg += ` - ${e.error.message}`; } catch { }
+        try {
+            const e = await response.json();
+            if (e.error?.message) errMsg += ` - ${e.error.message}`;
+        } catch {
+            // Keep the generic status text when API body is not JSON.
+        }
         throw new Error(errMsg);
     }
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error('Gemini returned no content. May have been blocked by safety filters.');
-    const parsed = JSON.parse(text);
-    return parsed.ideas || [];
+    const parsed = parseLLMJson(text);
+    return normalizeIdeas(parsed.ideas ?? parsed);
 }
 
 function compactIdeasForEval(ideasArray) {
+    const normalized = normalizeIdeas(ideasArray);
     // Convert to numbered list string: "0. Title – Summary\n1. ..."
-    return ideasArray.map((idea, i) => {
+    return normalized.map((idea, i) => {
         const title = idea.t || idea.title || '';
         const summary = idea.s || idea.content || '';
         return `${i}. ${title} – ${summary}`;
@@ -90,18 +167,39 @@ function compactIdeasForEval(ideasArray) {
 }
 
 function mapEvalResults(evaluations, ideasArray) {
-    return (evaluations || []).map(item => ({
-        title: item.title || ideasArray[item.i]?.t || ideasArray[item.i]?.title || "Untitled Idea",
-        idea: item.content || "",
-        thoughtProcess: item.thoughtProcess || "",
-        evaluation: {
-            syntax: item.syn ?? item.syntax ?? 0,
-            feasibility: item.fea ?? item.feasibility ?? 0,
-            relevance: item.rel ?? item.relevance ?? 0,
-            novelty: item.nov ?? item.novelty ?? 0,
-            reasoning: item.reason ?? item.reasoning ?? ""
-        }
-    }));
+    const ideaPool = normalizeIdeas(ideasArray);
+    const rows = Array.isArray(evaluations)
+        ? evaluations
+        : Array.isArray(evaluations?.evaluations)
+            ? evaluations.evaluations
+            : [];
+
+    return rows
+        .map((item, index) => {
+            if (!item || typeof item !== 'object') return null;
+
+            const idx = Number(item.i ?? item.index ?? item.id);
+            const hasIndex = Number.isFinite(idx) && idx >= 0 && idx < ideaPool.length;
+            const baseIdea = hasIndex ? ideaPool[Math.trunc(idx)] : ideaPool[index];
+            const title = asString(item.title ?? item.t ?? baseIdea?.t ?? `Idea ${index + 1}`);
+            const idea = asString(item.content ?? item.idea ?? item.description ?? baseIdea?.s ?? title);
+            const thoughtProcess = asString(item.thoughtProcess ?? item.chain ?? item.thought);
+
+            return {
+                title,
+                idea,
+                thoughtProcess,
+                evaluation: {
+                    syntax: clampScore(item.syn ?? item.syntax),
+                    feasibility: clampScore(item.fea ?? item.feasibility),
+                    relevance: clampScore(item.rel ?? item.relevance),
+                    novelty: clampScore(item.nov ?? item.novelty),
+                    reasoning: asString(item.reason ?? item.reasoning ?? item.rationale),
+                },
+            };
+        })
+        .filter((row) => row && (row.title || row.idea))
+        .slice(0, 10);
 }
 
 async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasArray) {
@@ -121,14 +219,20 @@ async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasA
 
     if (!response.ok) {
         let errMsg = `Gemini API Error: ${response.statusText}`;
-        try { const e = await response.json(); if (e.error?.message) errMsg += ` - ${e.error.message}`; } catch { }
+        try {
+            const e = await response.json();
+            if (e.error?.message) errMsg += ` - ${e.error.message}`;
+        } catch {
+            // Keep the generic status text when API body is not JSON.
+        }
         throw new Error(errMsg);
     }
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error('Gemini returned no content during evaluation.');
-    const result = JSON.parse(text);
-    return mapEvalResults(result.evaluations, ideasArray);
+    const result = parseLLMJson(text);
+    const mapped = mapEvalResults(result.evaluations ?? result, ideasArray);
+    return mapped.length > 0 ? mapped : fallbackEvaluations(ideasArray);
 }
 
 /**
@@ -163,7 +267,7 @@ export async function generateIdeas(providerConfig, prompt, temperature = 2.0) {
 
         const response = await openai.chat.completions.create(payload);
         const parsed = parseLLMJson(response.choices[0].message.content);
-        return parsed.ideas || [];
+        return normalizeIdeas(parsed.ideas ?? parsed);
     } catch (error) {
         throw new Error(error?.error?.message || error?.message || "Failed to generate ideas.");
     }
@@ -205,9 +309,12 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
 
         const response = await openai.chat.completions.create(payload);
         const result = parseLLMJson(response.choices[0].message.content);
-        return mapEvalResults(result.evaluations, ideasArray);
+        const mapped = mapEvalResults(result.evaluations ?? result, ideasArray);
+        return mapped.length > 0 ? mapped : fallbackEvaluations(ideasArray);
     } catch (error) {
         console.error("Evaluation Error:", error);
+        const fallback = fallbackEvaluations(ideasArray);
+        if (fallback.length > 0) return fallback;
         throw new Error(error.message || "Evaluation API Error");
     }
 }

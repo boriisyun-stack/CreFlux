@@ -68,6 +68,8 @@ export const globalStyles = globalCss({
         boxSizing: 'border-box',
         margin: 0,
         padding: 0,
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'rgba(131, 56, 236, 0.25) transparent',
     },
     body: {
         fontFamily: '$body',
@@ -102,9 +104,5 @@ export const globalStyles = globalCss({
         borderRadius: '9999px',
         border: '2px solid transparent',
         backgroundClip: 'content-box',
-    },
-    '*': {
-        scrollbarWidth: 'thin',
-        scrollbarColor: 'rgba(131, 56, 236, 0.25) transparent',
     },
 });
