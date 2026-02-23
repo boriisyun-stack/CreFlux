@@ -180,6 +180,43 @@ function fallbackEvaluations(ideasArray) {
     }));
 }
 
+function parseIdeasFromPlainText(text) {
+    const clean = asString(text);
+    if (!clean) return [];
+
+    const lines = clean
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => line.replace(/^[-*\d.)\s]+/, '').trim())
+        .filter((line) => line.length >= 8);
+
+    const seen = new Set();
+    const ideas = [];
+
+    for (const line of lines) {
+        const normalized = line.toLowerCase();
+        if (seen.has(normalized)) continue;
+        seen.add(normalized);
+
+        let title = line;
+        let summary = line;
+
+        const dividerMatch = line.match(/^([^:]{3,70}):\s+(.{6,})$/);
+        if (dividerMatch) {
+            title = dividerMatch[1].trim();
+            summary = dividerMatch[2].trim();
+        } else if (line.length > 70) {
+            title = `${line.slice(0, 67).trim()}...`;
+        }
+
+        ideas.push({ t: title, s: summary });
+        if (ideas.length >= 100) break;
+    }
+
+    return ideas;
+}
+
 // ── Compact generation prompt (title + 1-line summary only) ──
 const GEN_SYSTEM = `Rogue creative AI. Generate 100 wild, strange, out-of-the-box ideas from the user's topic. Combine unrelated concepts, break logic. Each idea: short title + 1-sentence summary (max 15 words). English only. JSON: {"ideas":[{"t":"Title","s":"One-line summary"},…]}`;
 
@@ -216,10 +253,20 @@ async function generateWithGeminiNative(providerConfig, prompt, temperature) {
         throw new Error(errMsg);
     }
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const text = parts.map((part) => asString(part?.text)).filter(Boolean).join('\n').trim();
     if (!text) throw new Error('Gemini returned no content. May have been blocked by safety filters.');
-    const parsed = parseLLMJson(text);
-    return normalizeIdeas(parsed.ideas ?? parsed);
+    try {
+        const parsed = parseLLMJson(text);
+        const ideas = normalizeIdeas(parsed.ideas ?? parsed);
+        if (ideas.length > 0) return ideas;
+    } catch {
+        // Fall back to plain text extraction below.
+    }
+
+    const fallback = parseIdeasFromPlainText(text);
+    if (fallback.length > 0) return fallback;
+    throw new Error(`Failed to parse Gemini idea output. Snippet: ${text.slice(0, 180)}`);
 }
 
 function compactIdeasForEval(ideasArray) {
@@ -336,8 +383,18 @@ export async function generateIdeas(providerConfig, prompt, temperature = 2.0) {
         }
 
         const response = await openai.chat.completions.create(payload);
-        const parsed = parseLLMJson(response.choices[0].message.content);
-        return normalizeIdeas(parsed.ideas ?? parsed);
+        const rawContent = asString(response.choices[0].message.content);
+        try {
+            const parsed = parseLLMJson(rawContent);
+            const ideas = normalizeIdeas(parsed.ideas ?? parsed);
+            if (ideas.length > 0) return ideas;
+        } catch {
+            // Fall back to plain-text extraction below.
+        }
+
+        const fallback = parseIdeasFromPlainText(rawContent);
+        if (fallback.length > 0) return fallback;
+        throw new Error(`Failed to parse idea output. Snippet: ${rawContent.slice(0, 180)}`);
     } catch (error) {
         throw new Error(error?.error?.message || error?.message || "Failed to generate ideas.");
     }
@@ -354,6 +411,8 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
             return await evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasArray);
         } catch (e) {
             console.error("Evaluation Error:", e);
+            const fallback = fallbackEvaluations(ideasArray);
+            if (fallback.length > 0) return fallback;
             throw new Error(`Evaluation failed: ${e.message}`);
         }
     }
