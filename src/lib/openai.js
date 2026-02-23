@@ -129,14 +129,19 @@ const EVAL_SYSTEM = `Evaluator. From 100 idea summaries and the user prompt, pic
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const safeTemperature = Number.isFinite(Number(temperature)) ? Number(temperature) : 1;
+    const payload = {
+        system_instruction: { parts: [{ text: GEN_SYSTEM }] },
+        contents: [{ parts: [{ text: asString(prompt) }] }],
+        generationConfig: {
+            temperature: Math.max(0, Math.min(2, safeTemperature)),
+            responseMimeType: "application/json",
+        },
+    };
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-            system_instruction: { parts: [{ text: GEN_SYSTEM }] },
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature, response_mime_type: "application/json" }
-        })
+        body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -207,14 +212,18 @@ async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasA
     const compactList = compactIdeasForEval(ideasArray);
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const payload = {
+        system_instruction: { parts: [{ text: EVAL_SYSTEM }] },
+        contents: [{ parts: [{ text: `Prompt: ${asString(prompt)}\n\nIdeas:\n${compactList}` }] }],
+        generationConfig: {
+            temperature: 0.1,
+            responseMimeType: "application/json",
+        },
+    };
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-            system_instruction: { parts: [{ text: EVAL_SYSTEM }] },
-            contents: [{ parts: [{ text: `Prompt: ${prompt}\n\nIdeas:\n${compactList}` }] }],
-            generationConfig: { temperature: 0.1, response_mime_type: "application/json" }
-        })
+        body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
