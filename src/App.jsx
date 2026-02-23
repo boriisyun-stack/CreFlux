@@ -15,7 +15,7 @@ const PROVIDERS = {
   custom: { name: 'Custom', defaultBase: '', defaultModel: '' },
 };
 
-const SLIDER_LABELS = ["Copy and Paste", "Reference", "Normal", "Create", "Creativity"];
+const SLIDER_LABELS = ["복붙", "참고", "일반", "창작", "창의성"];
 
 // --- STITCHES COMPONENTS ---
 
@@ -797,19 +797,19 @@ export default function App() {
   const handleGenerate = async () => {
     let finalApiKey = apiKey.trim();
     if (!finalApiKey) {
-      setError("Please enter your API key in the configuration panel.");
+      setError("API 설정에서 호환 가능한 API 키를 입력해주세요.");
       setShowSettings(true);
       setIsHeaderOpen(true); // Ensure master panel is visible
       return;
     }
     if (!prompt.trim()) {
-      setError("Please enter a creative prompt.");
+      setError("어떤 생성 규칙을 가지고 만들까요? 프롬프트를 입력해주세요!");
       return;
     }
 
     setError(null);
     setIsGenerating(true);
-    setGenerationStep("Enhancing Prompt...");
+    setGenerationStep("시냅스 연결 중...");
     setResults([]);
 
     const providerConfig = {
@@ -822,12 +822,12 @@ export default function App() {
     try {
       const enhancedPrompt = await enhancePrompt(providerConfig, prompt);
 
-      setGenerationStep("Hallucinating & Evaluating...");
+      setGenerationStep("제시된 아이디어 검증 중...");
       const hallucinationLevel = sliderIndex * 0.5; // Maps 0-4 to 0.0-2.0
       const rawIdeas = await generateIdeas(providerConfig, enhancedPrompt, hallucinationLevel);
 
       if (!rawIdeas || rawIdeas.length === 0) {
-        throw new Error("No ideas were generated. Try tweaking the prompt or checking the model.");
+        throw new Error("아이디어가 생성되지 않았습니다. 프롬프트를 조정하거나 모델을 확인해보세요.");
       }
 
       // Evaluate the batch of 100 ideas in one API call
@@ -842,7 +842,8 @@ export default function App() {
       setShowSettings(false);
 
     } catch (err) {
-      setError(err.message || "An error occurred during generation.");
+      setError('오류가 발생했습니다: ' + err.message);
+      setIsHeaderOpen(true);
     } finally {
       setIsGenerating(false);
     }
@@ -858,6 +859,46 @@ export default function App() {
     return 'low';
   }, []);
 
+
+  const [isTranslating, setIsTranslating] = useState({});
+
+  // Translation Function
+  const handleTranslate = async (index) => {
+    const idea = results[index]; // Changed from 'ideas' to 'results'
+    if (idea.isTranslated) return;
+
+    setIsTranslating(prev => ({ ...prev, [index]: true }));
+
+    try {
+      const textsToTranslate = [idea.title, idea.idea, idea.evaluation.reasoning]; // Changed 'content' to 'idea'
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texts: textsToTranslate, targetLang: 'ko' })
+      });
+
+      if (!response.ok) throw new Error('Translation failed');
+      const data = await response.json();
+
+      const newIdeas = [...results]; // Changed from 'ideas' to 'results'
+      newIdeas[index] = {
+        ...idea,
+        title: data.translations[0],
+        idea: data.translations[1], // Changed 'content' to 'idea'
+        evaluation: {
+          ...idea.evaluation,
+          reasoning: data.translations[2],
+        },
+        isTranslated: true
+      };
+      setResults(newIdeas); // Changed from 'setIdeas' to 'setResults'
+    } catch (err) {
+      console.error('Translation error:', err);
+      // Optional: Add toast or alert here
+    } finally {
+      setIsTranslating(prev => ({ ...prev, [index]: false }));
+    }
+  };
 
   const handleCopy = useCallback((item, index) => {
     const copyText = copyFormat
@@ -889,11 +930,11 @@ export default function App() {
             <Header>
               <h1>CreFlux</h1>
               <p>
-                Make your idea with AI's hallucination
+                AI의 환각을 이용해 당신의 아이디어를 구체화하세요
               </p>
             </Header>
 
-            <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
+            <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="복사 형식 설정">
               <Settings size={27} />
             </SettingsGearBtn>
 
@@ -902,14 +943,14 @@ export default function App() {
                 <PanelsSplit>
                   <GlassPanel open={showSettings}>
                     <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
-                      <h2><Settings size={20} /> AI Configuration</h2>
+                      <h2><Settings size={20} /> AI 설정</h2>
                       {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                     </ToggleHeader>
 
                     <ToggleBody open={showSettings}>
                       <div>
                         <FormGroup>
-                          <Label>AI Provider</Label>
+                          <Label>AI 제공자</Label>
                           <Select value={provider} onChange={handleProviderChange}>
                             {Object.entries(PROVIDERS).map(([key, data]) => (
                               <option key={key} value={key}>{data.name}</option>
@@ -919,19 +960,19 @@ export default function App() {
 
                         <FormRow>
                           <FormGroup>
-                            <Label>API Key</Label>
+                            <Label>API 키</Label>
                             <Input
                               type="password"
-                              placeholder="Enter API Key"
+                              placeholder="API 키 입력"
                               value={apiKey}
                               onChange={(e) => setApiKey(e.target.value)}
                             />
                           </FormGroup>
                           <FormGroup>
-                            <Label>Model Name</Label>
+                            <Label>모델 이름</Label>
                             <Input
                               type="text"
-                              placeholder="e.g. gpt-4o"
+                              placeholder="예: gpt-4o"
                               value={model}
                               onChange={(e) => setModel(e.target.value)}
                             />
@@ -939,7 +980,7 @@ export default function App() {
                         </FormRow>
 
                         <FormGroup>
-                          <Label>Base URL (Optional override)</Label>
+                          <Label>기본 URL (선택 사항)</Label>
                           <Input
                             type="url"
                             placeholder="https://api.openai.com/v1"
@@ -952,7 +993,7 @@ export default function App() {
                         <FormGroup>
                           <SliderContainer>
                             <SliderHeader>
-                              <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
+                              <Label style={{ marginBottom: 0 }}>환각(창의성) 레벨</Label>
                               <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
                             </SliderHeader>
                             <SliderInput
@@ -971,7 +1012,7 @@ export default function App() {
 
                   <GlassPanel open={showGenerate}>
                     <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
-                      <h2><Sparkles size={20} /> Generate Ideas</h2>
+                      <h2><Sparkles size={20} /> 아이디어 생성</h2>
                       {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                     </ToggleHeader>
 
@@ -979,11 +1020,11 @@ export default function App() {
                       <div>
                         <FormGroup style={{ position: 'relative' }}>
                           <Textarea
-                            placeholder="Enter a problem, topic, or seed. Example: 'How to revolutionize public transport' or 'A new way to eat soup'"
+                            placeholder="문제, 주제 또는 씨앗을 입력하세요. 예: '대중교통을 혁신하는 방법' 또는 '수프를 먹는 새로운 방법'"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                           />
-                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
+                          <RandomPromptBtn onClick={handleRandomPrompt} title="무작위 프롬프트 사용">
                             <Dices size={18} />
                           </RandomPromptBtn>
                         </FormGroup>
@@ -1002,7 +1043,7 @@ export default function App() {
                           {isGenerating ? (
                             <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
                           ) : (
-                            <><Sparkles size={20} /> Ignite Imagination</>
+                            <><Sparkles size={20} /> 상상력 발화</>
                           )}
                         </Button>
                       </div>
@@ -1014,9 +1055,9 @@ export default function App() {
 
             <MasterToggleBtn onClick={() => setIsHeaderOpen(!isHeaderOpen)}>
               {isHeaderOpen ? (
-                <><ChevronUp size={20} /> Hide Configuration</>
+                <><ChevronUp size={20} /> 설정 숨기기</>
               ) : (
-                <><ChevronDown size={20} /> Show Configuration</>
+                <><ChevronDown size={20} /> 설정 보기</>
               )}
             </MasterToggleBtn>
           </StickyHeader>
@@ -1025,7 +1066,7 @@ export default function App() {
             {isGenerating && (
               <LoadingStateContainer>
                 <LargeLoader><Sparkles size={48} /></LargeLoader>
-                <h3>Spawning Ideas...</h3>
+                <h3>아이디어 생성 중...</h3>
                 <p>{generationStep}</p>
               </LoadingStateContainer>
             )}
@@ -1034,7 +1075,7 @@ export default function App() {
               <IdeasList>
                 {results.map((item, index) => (
                   <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
-                    <CopyButton onClick={() => handleCopy(item, index)} title="Copy Idea">
+                    <CopyButton onClick={() => handleCopy(item, index)} title="아이디어 복사">
                       {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                     </CopyButton>
                     {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
@@ -1043,7 +1084,7 @@ export default function App() {
                     </IdeaContent>
                     <IdeaMetrics>
                       <Metric>
-                        <MetricLabel>Syntax</MetricLabel>
+                        <MetricLabel>구문</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation.syntax)}>
                           {item.evaluation.syntax || 0}
                         </MetricValue>
@@ -1055,7 +1096,7 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>Feasibility</MetricLabel>
+                        <MetricLabel>실현 가능성</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation.feasibility)}>
                           {item.evaluation.feasibility || 0}
                         </MetricValue>
@@ -1067,7 +1108,7 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>Relevance</MetricLabel>
+                        <MetricLabel>관련성</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation.relevance)}>
                           {item.evaluation.relevance || 0}
                         </MetricValue>
@@ -1084,6 +1125,40 @@ export default function App() {
                         "{item.evaluation.reasoning}"
                       </Reasoning>
                     )}
+                    {!item.isTranslated && (
+                      <button
+                        onClick={() => handleTranslate(index)}
+                        disabled={isTranslating[index]}
+                        style={{
+                          marginTop: '$3',
+                          background: 'linear-gradient(135deg, $primary, $secondary)',
+                          border: 'none',
+                          borderRadius: '$round',
+                          color: 'white',
+                          padding: '0.6rem 1rem',
+                          fontSize: '0.9rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '$2',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            opacity: 0.9,
+                            transform: 'translateY(-1px)',
+                          },
+                          '&:disabled': {
+                            opacity: 0.6,
+                            cursor: 'not-allowed',
+                            transform: 'none',
+                          }
+                        }}
+                      >
+                        {isTranslating[index] ? <Loader><Sparkles size={14} /></Loader> : <Sparkles size={14} />}
+                        {isTranslating[index] ? '번역 중...' : '한국어로 번역하기'}
+                      </button>
+                    )}
                   </IdeaCard>
                 ))}
               </IdeasList>
@@ -1099,10 +1174,10 @@ export default function App() {
               <ModalCloseBtn onClick={() => setShowCopySettings(false)}>
                 <X size={20} />
               </ModalCloseBtn>
-              <h3><SlidersHorizontal size={20} /> Copy Format</h3>
+              <h3><SlidersHorizontal size={20} /> 복사 형식</h3>
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                Presets
+                프리셋
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
                 {FORMAT_PRESETS.map(p => (
@@ -1127,7 +1202,7 @@ export default function App() {
               </div>
 
               <p style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', marginBottom: '0.5rem' }}>
-                Customize directly or select a preset above. Available variables:
+                직접 사용자 정의하거나 위에서 프리셋을 선택하세요. 사용 가능한 변수:
               </p>
               <VariableList>
                 {COPY_VARIABLES.map(v => (
@@ -1141,7 +1216,7 @@ export default function App() {
               />
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginTop: '1rem', marginBottom: '0.4rem' }}>
-                Preview
+                미리보기
               </label>
               <pre style={{
                 background: 'rgba(0,0,0,0.03)',
