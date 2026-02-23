@@ -123,6 +123,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
     {
       "title": "The exact title of the chosen idea",
       "content": "The exact content of the chosen idea",
+      "thoughtProcess": "A 5-to-7 word association chain showing how this idea was conceived (e.g. Avatar → Alien → Space → Spaceship → Astronaut)",
       "syntax": number,
       "feasibility": number,
       "relevance": number,
@@ -169,6 +170,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
     return (result.evaluations || []).map(item => ({
         title: item.title || "Untitled Idea",
         idea: item.content || item.idea || "",
+        thoughtProcess: item.thoughtProcess || "",
         evaluation: {
             syntax: item.syntax,
             feasibility: item.feasibility,
@@ -280,6 +282,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
     {
       "title": "The exact title of the chosen idea",
       "content": "The exact content of the chosen idea",
+      "thoughtProcess": "A 5-to-7 word association chain showing how this idea was conceived (e.g. Avatar → Alien → Space → Spaceship → Astronaut)",
       "syntax": number,
       "feasibility": number,
       "relevance": number,
@@ -311,6 +314,7 @@ You MUST return a JSON object with this exact structure for the selected ideas:
         const mappedResults = (result.evaluations || []).map(item => ({
             title: item.title || "Untitled Idea",
             idea: item.content || item.idea || "",
+            thoughtProcess: item.thoughtProcess || "",
             evaluation: {
                 syntax: item.syntax,
                 feasibility: item.feasibility,

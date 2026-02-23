@@ -302,13 +302,27 @@ const IdeaTitle = styled('h3', {
   fontSize: '$5',
   fontWeight: 800,
   color: '$primary',
-  marginBottom: '$3',
+  marginBottom: '$1', // tighter gap to the thought chain
   marginTop: 0,
   paddingRight: '40px', // Space for copy button
   lineHeight: 1.4,
 });
 
+const ThoughtChain = styled('div', {
+  fontSize: '0.8rem',
+  color: '$textMuted',
+  fontFamily: 'monospace',
+  marginBottom: '$3',
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '4px',
+  opacity: 0.8,
+});
+
 const DEFAULT_COPY_FORMAT = `[{title}]
+{thoughtProcess}
+
 {idea}
 
 Reasoning: {reasoning}
@@ -317,6 +331,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
 const COPY_VARIABLES = [
   { key: '{title}', desc: 'Idea Title' },
   { key: '{idea}', desc: 'Idea Content' },
+  { key: '{thoughtProcess}', desc: 'Thought Process Chain' },
   { key: '{syntax}', desc: 'Syntax Score' },
   { key: '{feasibility}', desc: 'Feasibility Score' },
   { key: '{relevance}', desc: 'Relevance Score' },
@@ -327,12 +342,16 @@ const COPY_VARIABLES = [
 const FORMAT_PRESETS = [
   {
     key: 'default', name: 'Default', format: `[{title}]
+{thoughtProcess}
+
 {idea}
 
 Reasoning: {reasoning}
 Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty: {novelty}` },
   {
     key: 'notion', name: 'Notion', format: `### {title}
+*({thoughtProcess})*
+
 > {idea}
 
 **Reasoning:** {reasoning}
@@ -340,6 +359,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
   { key: 'oneliner', name: 'One-liner', format: `[{title}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance}/NOV:{novelty})` },
   {
     key: 'markdown', name: 'Markdown', format: `## {title}
+*{thoughtProcess}*
 
 {idea}
 
@@ -356,6 +376,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
     key: 'json', name: 'JSON', format: `{
   "title": "{title}",
   "idea": "{idea}",
+  "thoughtProcess": "{thoughtProcess}",
   "scores": { "syntax": {syntax}, "feasibility": {feasibility}, "relevance": {relevance}, "novelty": {novelty} },
   "reasoning": "{reasoning}"
 }` },
@@ -876,6 +897,7 @@ export default function App() {
   const handleCopy = useCallback((item, index) => {
     const copyText = copyFormat
       .replace(/\{title\}/g, item.title || '')
+      .replace(/\{thoughtProcess\}/g, item.thoughtProcess || '')
       .replace(/\{idea\}/g, item.idea || '')
       .replace(/\{syntax\}/g, String(item.evaluation?.syntax || 0))
       .replace(/\{feasibility\}/g, String(item.evaluation?.feasibility || 0))
@@ -1083,6 +1105,18 @@ export default function App() {
                       {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                     </CopyButton>
                     {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
+                    {item.thoughtProcess && (
+                      <ThoughtChain>
+                        {item.thoughtProcess.split('→').map((node, i, arr) => (
+                          <React.Fragment key={i}>
+                            <span style={{ padding: '2px 6px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
+                              {node.trim()}
+                            </span>
+                            {i < arr.length - 1 && <span style={{ color: 'var(--colors-secondary)' }}>→</span>}
+                          </React.Fragment>
+                        ))}
+                      </ThoughtChain>
+                    )}
                     <IdeaContent>
                       {item.idea.split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
                     </IdeaContent>
