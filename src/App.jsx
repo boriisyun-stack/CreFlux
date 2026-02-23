@@ -869,9 +869,11 @@ export default function App() {
       // Play completion sound
       playSound(soundVolume);
 
-      // Auto-collapse panels to show ideas taking full screen
-      setShowGenerate(false);
-      setShowSettings(false);
+      // Successfully generated: collapse the entire master header naturally
+      setIsHeaderOpen(false);
+      // Ensure internal panels are ready for next open
+      setShowSettings(true);
+      setShowGenerate(true);
 
     } catch (err) {
       setError("An error occurred: " + err.message);
@@ -1079,7 +1081,14 @@ export default function App() {
               </div>
             </div>
 
-            <MasterToggleBtn onClick={() => setIsHeaderOpen(!isHeaderOpen)}>
+            <MasterToggleBtn onClick={() => {
+              const nextState = !isHeaderOpen;
+              setIsHeaderOpen(nextState);
+              if (nextState) {
+                setShowSettings(true);
+                setShowGenerate(true);
+              }
+            }}>
               {isHeaderOpen ? (
                 <><ChevronUp size={20} /> Hide Configuration</>
               ) : (
