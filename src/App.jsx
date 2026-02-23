@@ -900,13 +900,6 @@ export default function App() {
     <>
       <RootContainer>
         <AppContainer>
-          <Header>
-            <h1>CreFlux</h1>
-            <p>
-              Make your idea with AI's hallucination
-            </p>
-          </Header>
-
           <TopRightControls>
             <SettingsGearBtn onClick={() => setShowCopySettings(true)} title="Copy format settings">
               <Settings size={24} />
@@ -921,6 +914,13 @@ export default function App() {
           )}
 
           <StickyHeader>
+            <Header style={{ marginBottom: isHeaderOpen ? '1rem' : '0', transition: 'margin 0.4s ease' }}>
+              <h1>CreFlux</h1>
+              <p>
+                Make your idea with AI's hallucination
+              </p>
+            </Header>
+
             <div style={{ position: 'relative', width: '100%', display: 'grid', gridTemplateRows: isHeaderOpen ? '1fr' : '0fr', transition: 'grid-template-rows 0.4s ease' }}>
               <div style={{ overflow: 'hidden', minHeight: 0 }}>
                 <PanelsSplit>
