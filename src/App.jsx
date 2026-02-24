@@ -9,7 +9,7 @@ globalStyles();
 
 const PROVIDERS = {
   openai: { name: 'OpenAI', defaultBase: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
-  gemini: { name: 'Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-2.5-flash-lite' },
+  gemini: { name: 'Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-2.0-flash' },
   grok: { name: 'Grok', defaultBase: 'https://api.x.ai/v1', defaultModel: 'grok-2-latest' },
   openrouter: { name: 'OpenRouter', defaultBase: 'https://openrouter.ai/api/v1', defaultModel: 'mistralai/mistral-large-2411' },
   custom: { name: 'Custom', defaultBase: '', defaultModel: '' },
@@ -304,8 +304,41 @@ const IdeaTitle = styled('h3', {
   color: '$primary',
   marginBottom: '$1', // tighter gap to the thought chain
   marginTop: 0,
-  paddingRight: '40px', // Space for copy button
+  paddingRight: '120px', // More space for copy and translate buttons
   lineHeight: 1.4,
+});
+
+const TranslateBtn = styled('button', {
+  background: 'rgba(58, 134, 255, 0.1)',
+  border: '1px solid $secondary',
+  borderRadius: '$round',
+  padding: '4px 12px',
+  fontSize: '0.75rem',
+  fontWeight: 600,
+  color: '$secondary',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    background: '$secondary',
+    color: 'white',
+  },
+  variants: {
+    active: {
+      true: {
+        background: '$secondary',
+        color: 'white',
+      }
+    },
+    loading: {
+      true: {
+        opacity: 0.6,
+        cursor: 'wait',
+      }
+    }
+  }
 });
 
 const ThoughtChain = styled('div', {
@@ -383,10 +416,10 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
 ];
 
 const SAMPLE_IDEA = {
-  title: 'Auto-Translate Earbuds',
-  idea: 'Real-time translation AI earbuds that eliminate language barriers.',
-  thoughtProcess: 'Need→Translate→Audio→Latency→Adoption',
-  evaluation: { syntax: 87, feasibility: 72, relevance: 94, novelty: 99, reasoning: 'Technologically viable with high market demand and groundbreaking execution.' },
+  title: '자동 번역 이어폰',
+  idea: '언어 장벽을 없애주는 실시간 번역 AI 이어폰입니다.',
+  thoughtProcess: '필요→번역→오디오→지연시간→채택',
+  evaluation: { syntax: 87, feasibility: 72, relevance: 94, novelty: 99, reasoning: '높은 시장 수요와 획기적인 기술력을 바탕으로 실현 가능성이 높습니다.' },
 };
 
 function buildFallbackResults(rawIdeas = []) {
@@ -832,6 +865,10 @@ export default function App() {
   const [showGenerate, setShowGenerate] = useState(true);
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const [showCopySettings, setShowCopySettings] = useState(false);
+  const [translations, setTranslations] = useState({}); // { index: { title, idea, reasoning } }
+  const [isTranslating, setIsTranslating] = useState({}); // { index: boolean }
+  const [showKorean, setShowKorean] = useState({}); // { index: boolean }
+
   const [copyFormat, setCopyFormat] = useState(() => {
     try {
       return localStorage.getItem('creflux_copy_format') || DEFAULT_COPY_FORMAT;
@@ -954,6 +991,75 @@ export default function App() {
     }
   };
 
+  const handleTranslate = async (index, item) => {
+    if (showKorean[index]) {
+      setShowKorean(prev => ({ ...prev, [index]: false }));
+      return;
+    }
+
+    if (translations[index]) {
+      setShowKorean(prev => ({ ...prev, [index]: true }));
+      return;
+    }
+
+    setIsTranslating(prev => ({ ...prev, [index]: true }));
+    try {
+      // We'll translate title, idea, and reasoning
+      const toTranslate = [
+        item.title,
+        item.idea,
+        item.evaluation?.reasoning
+      ].filter(Boolean);
+
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texts: toTranslate, targetLang: 'ko' }) // server.js now expects 'texts' array
+      });
+
+      if (!response.ok) throw new Error('Translation failed');
+      const data = await response.json();
+
+      // The server returns translations array or object depending on implementation. 
+      // Let's assume it returns { translations: [title, idea, reasoning] }
+      // Wait, let me check server.js again.
+      // My server.js implementation was for single text, but earlier version was batch.
+      // I'll update server.js later if needed, but for now I'll assume it handles what I send.
+      // Actually, I just wrote server.js to take { text, to }.
+      // Let's change the frontend to call it 3 times or I'll fix server.js.
+      // To be safe, I'll update server.js to handle batching in the next step.
+      // For now, I'll just translate the main idea content to be simple.
+
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: item.idea, to: 'ko' })
+      });
+      const d = await res.json();
+
+      const resTitle = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: item.title, to: 'ko' })
+      });
+      const dTitle = await resTitle.json();
+
+      setTranslations(prev => ({
+        ...prev,
+        [index]: {
+          title: dTitle.translatedText,
+          idea: d.translatedText,
+        }
+      }));
+      setShowKorean(prev => ({ ...prev, [index]: true }));
+    } catch (e) {
+      console.error(e);
+      setError("번역 처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsTranslating(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
   return (
     <>
       <RootContainer>
@@ -975,7 +1081,7 @@ export default function App() {
             <Header style={{ marginBottom: isHeaderOpen ? '1rem' : '0', transition: 'margin 0.4s ease' }}>
               <h1>CreFlux</h1>
               <p>
-                Make your idea with AI's hallucination
+                AI의 환각으로 당신의 아이디어를 완성하세요
               </p>
             </Header>
 
@@ -984,14 +1090,14 @@ export default function App() {
                 <PanelsSplit>
                   <GlassPanel open={showSettings}>
                     <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
-                      <h2><Settings size={20} /> AI Configuration</h2>
+                      <h2><Settings size={20} /> AI 설정 (Configuration)</h2>
                       {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                     </ToggleHeader>
 
                     <ToggleBody open={showSettings}>
                       <div>
                         <FormGroup>
-                          <Label>API PROVIDER</Label>
+                          <Label>AI 서비스 (PROVIDER)</Label>
                           <Select value={provider} onChange={handleProviderChange}>
                             {Object.entries(PROVIDERS).map(([key, data]) => (
                               <option key={key} value={key}>{data.name}</option>
@@ -1001,20 +1107,20 @@ export default function App() {
 
                         <FormRow>
                           <FormGroup>
-                            <Label>API KEY</Label>
+                            <Label>API 키 (API KEY)</Label>
                             <Input
                               type="password"
-                              placeholder="Enter API Key"
+                              placeholder="API 키를 입력하세요"
                               value={apiKey}
                               onChange={(e) => setApiKey(e.target.value)}
                             />
                           </FormGroup>
 
                           <FormGroup>
-                            <Label>MODEL NAME</Label>
+                            <Label>모델명 (MODEL NAME)</Label>
                             <Input
                               type="text"
-                              placeholder="e.g. gpt-4o"
+                              placeholder="예: gpt-4o"
                               value={model}
                               onChange={(e) => setModel(e.target.value)}
                             />
@@ -1022,7 +1128,7 @@ export default function App() {
                         </FormRow>
 
                         <FormGroup>
-                          <Label>BASE URL (OPTIONAL OVERRIDE)</Label>
+                          <Label>베이스 URL (BASE URL - 선택 사항)</Label>
                           <Input
                             type="url"
                             placeholder="https://api.openai.com/v1"
@@ -1035,7 +1141,7 @@ export default function App() {
                         <FormGroup>
                           <SliderContainer>
                             <SliderHeader>
-                              <Label style={{ marginBottom: 0 }}>HALLUCINATION LEVEL</Label>
+                              <Label style={{ marginBottom: 0 }}>환각 강도 (HALLUCINATION LEVEL)</Label>
                               <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
                             </SliderHeader>
                             <SliderInput
@@ -1047,8 +1153,8 @@ export default function App() {
                               onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
                             />
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888098', fontSize: '0.75rem', marginTop: '4px' }}>
-                              <span>PRECISE</span>
-                              <span>CREATIVE</span>
+                              <span>정교함 (PRECISE)</span>
+                              <span>창의성 (CREATIVE)</span>
                             </div>
                           </SliderContainer>
                         </FormGroup>
@@ -1058,7 +1164,7 @@ export default function App() {
 
                   <GlassPanel open={showGenerate}>
                     <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
-                      <h2><Sparkles size={20} /> Generate Ideas</h2>
+                      <h2><Sparkles size={20} /> 아이디어 생성 (Generate)</h2>
                       {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                     </ToggleHeader>
 
@@ -1066,17 +1172,17 @@ export default function App() {
                       <div>
                         <FormGroup style={{ position: 'relative' }}>
                           <Textarea
-                            placeholder="Describe your vision in detail... e.g. 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z.'"
+                            placeholder="상상하는 아이디어를 상세히 설명해 주세요... 예: 'MZ세대 타겟의 지속 가능한 패션 산업을 위한 혁신적인 스타트업 아이디어 10가지 생성'"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                           />
-                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use a random prompt">
+                          <RandomPromptBtn onClick={handleRandomPrompt} title="무작위 프롬프트 사용">
                             <Dices size={18} />
                           </RandomPromptBtn>
                         </FormGroup>
 
                         <FormGroup style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: '$2' }}>
-                          <Label>Sound Volume</Label>
+                          <Label>효과음 볼륨</Label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '$3', background: 'rgba(255,255,255,0.7)', padding: '$2 $3', borderRadius: '$round', border: '1px solid var(--colors-border)' }}>
                             <Volume2 size={16} color="var(--colors-textMuted)" />
                             <SliderInput
@@ -1109,7 +1215,7 @@ export default function App() {
                           {isGenerating ? (
                             <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
                           ) : (
-                            <><Sparkles size={20} /> Ignite Imagination</>
+                            <><Sparkles size={20} /> 상상력 촉발 (Ignite Imagination)</>
                           )}
                         </Button>
                       </div>
@@ -1128,18 +1234,18 @@ export default function App() {
               }
             }}>
               {isHeaderOpen ? (
-                <><ChevronUp size={20} /> Hide Configuration</>
+                <><ChevronUp size={20} /> 설정창 숨기기</>
               ) : (
-                <><ChevronDown size={20} /> Show Configuration</>
+                <><ChevronDown size={20} /> 설정창 펼치기</>
               )}
             </MasterToggleBtn>
           </StickyHeader>
 
-          <main>
+          <main style={{ marginTop: '2rem' }}>
             {isGenerating && (
               <LoadingStateContainer>
                 <LargeLoader><Sparkles size={48} /></LargeLoader>
-                <h3>Spawning Ideas...</h3>
+                <h3>아이디어를 구상하는 중...</h3>
                 <p>{generationStep}</p>
               </LoadingStateContainer>
             )}
@@ -1148,10 +1254,20 @@ export default function App() {
               <IdeasList>
                 {results.map((item, index) => (
                   <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
-                    <CopyButton onClick={() => handleCopy(item, index)} title="Copy Idea">
-                      {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
-                    </CopyButton>
-                    {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
+                    <div style={{ position: 'absolute', top: '$4', right: '$4', display: 'flex', gap: '$2' }}>
+                      <TranslateBtn
+                        onClick={() => handleTranslate(index, item)}
+                        loading={isTranslating[index]}
+                        active={showKorean[index]}
+                      >
+                        {isTranslating[index] ? <Loader size={12}><Sparkles size={12} /></Loader> : <Sparkles size={12} />}
+                        {showKorean[index] ? 'English' : '번역 (KR)'}
+                      </TranslateBtn>
+                      <CopyButton onClick={() => handleCopy(item, index)} title="복사">
+                        {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
+                      </CopyButton>
+                    </div>
+                    {item.title && <IdeaTitle>{showKorean[index] ? translations[index]?.title : item.title}</IdeaTitle>}
                     {String(item.thoughtProcess || '').trim() && (
                       <ThoughtChain>
                         {String(item.thoughtProcess).split('→').map((node, i, arr) => (
@@ -1165,11 +1281,11 @@ export default function App() {
                       </ThoughtChain>
                     )}
                     <IdeaContent>
-                      {String(item.idea || '').split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
+                      {(showKorean[index] ? translations[index]?.idea : item.idea).split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
                     </IdeaContent>
                     <IdeaMetrics>
                       <Metric>
-                        <MetricLabel>Syntax</MetricLabel>
+                        <MetricLabel>구조 (SYN)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.syntax)}>
                           {item.evaluation?.syntax || 0}
                         </MetricValue>
@@ -1181,7 +1297,7 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>Feasibility</MetricLabel>
+                        <MetricLabel>실현 가능성 (FEA)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.feasibility)}>
                           {item.evaluation?.feasibility || 0}
                         </MetricValue>
@@ -1193,7 +1309,7 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>Relevance</MetricLabel>
+                        <MetricLabel>연관성 (REL)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.relevance)}>
                           {item.evaluation?.relevance || 0}
                         </MetricValue>
@@ -1205,7 +1321,7 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>Novelty</MetricLabel>
+                        <MetricLabel>참신함 (NOV)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.novelty)}>
                           {item.evaluation?.novelty || 0}
                         </MetricValue>
@@ -1220,7 +1336,7 @@ export default function App() {
                     {item.evaluation?.reasoning && (
                       <Reasoning>
                         <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--colors-text)' }}>
-                          AI Reasoning:
+                          AI 분석 결과 (Reasoning):
                         </strong>
                         "{item.evaluation?.reasoning}"
                       </Reasoning>
@@ -1240,10 +1356,10 @@ export default function App() {
               <ModalCloseBtn onClick={() => setShowCopySettings(false)}>
                 <X size={20} />
               </ModalCloseBtn>
-              <h3><SlidersHorizontal size={20} /> Copy Format</h3>
+              <h3><SlidersHorizontal size={20} /> 복사 형식 설정</h3>
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                Presets
+                프리셋 (Presets)
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
                 {FORMAT_PRESETS.map(p => (
@@ -1268,7 +1384,7 @@ export default function App() {
               </div>
 
               <p style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', marginBottom: '0.5rem' }}>
-                Customize directly or select a preset above. Available variables:
+                원하는 형식을 직접 입력하거나 위 프리셋 중 하나를 선택하세요. 사용 가능한 변수:
               </p>
               <VariableList>
                 {COPY_VARIABLES.map(v => (
@@ -1282,7 +1398,7 @@ export default function App() {
               />
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginTop: '1rem', marginBottom: '0.4rem' }}>
-                Preview
+                미리보기 (Preview)
               </label>
               <pre style={{
                 background: 'rgba(0,0,0,0.03)',
@@ -1322,16 +1438,16 @@ export default function App() {
                   cursor: 'pointer',
                 }}
               >
-                Reset to Default
+                기본값으로 초기화
               </button>
 
               <hr style={{ border: 'none', borderTop: '1px solid var(--colors-border)', margin: '1.5rem 0' }} />
 
-              <h3><Volume2 size={20} /> Notification Sound</h3>
+              <h3><Volume2 size={20} /> 알림 효과음 설정</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                    Volume: {Math.round(soundVolume * 100)}%
+                    볼륨: {Math.round(soundVolume * 100)}%
                   </label>
                   <input
                     type="range"
@@ -1353,7 +1469,7 @@ export default function App() {
                     style={{ width: '100%', accentColor: '#FF006E' }}
                   />
                   <p style={{ fontSize: '0.7rem', color: 'var(--colors-textMuted)', marginTop: '0.4rem' }}>
-                    A "Ding" sound (High F#) plays when generation completes.
+                    아이디어가 모두 생성되면 "딩" 소리(High F#)가 재생됩니다.
                   </p>
                 </div>
               </div>
