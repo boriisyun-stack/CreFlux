@@ -308,38 +308,6 @@ const IdeaTitle = styled('h3', {
   lineHeight: 1.4,
 });
 
-const TranslateBtn = styled('button', {
-  background: 'rgba(58, 134, 255, 0.1)',
-  border: '1px solid $secondary',
-  borderRadius: '$round',
-  padding: '4px 12px',
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  color: '$secondary',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4px',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    background: '$secondary',
-    color: 'white',
-  },
-  variants: {
-    active: {
-      true: {
-        background: '$secondary',
-        color: 'white',
-      }
-    },
-    loading: {
-      true: {
-        opacity: 0.6,
-        cursor: 'wait',
-      }
-    }
-  }
-});
 
 const ThoughtChain = styled('div', {
   fontSize: '0.8rem',
@@ -865,9 +833,6 @@ export default function App() {
   const [showGenerate, setShowGenerate] = useState(true);
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const [showCopySettings, setShowCopySettings] = useState(false);
-  const [translations, setTranslations] = useState({}); // { index: { title, idea, reasoning } }
-  const [isTranslating, setIsTranslating] = useState({}); // { index: boolean }
-  const [showKorean, setShowKorean] = useState({}); // { index: boolean }
 
   const [copyFormat, setCopyFormat] = useState(() => {
     try {
@@ -990,76 +955,6 @@ export default function App() {
       console.warn('Failed to persist copy format:', e);
     }
   };
-
-  const handleTranslate = async (index, item) => {
-    if (showKorean[index]) {
-      setShowKorean(prev => ({ ...prev, [index]: false }));
-      return;
-    }
-
-    if (translations[index]) {
-      setShowKorean(prev => ({ ...prev, [index]: true }));
-      return;
-    }
-
-    setIsTranslating(prev => ({ ...prev, [index]: true }));
-    try {
-      // We'll translate title, idea, and reasoning
-      const toTranslate = [
-        item.title,
-        item.idea,
-        item.evaluation?.reasoning
-      ].filter(Boolean);
-
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texts: toTranslate, targetLang: 'ko' }) // server.js now expects 'texts' array
-      });
-
-      if (!response.ok) throw new Error('Translation failed');
-      const data = await response.json();
-
-      // The server returns translations array or object depending on implementation. 
-      // Let's assume it returns { translations: [title, idea, reasoning] }
-      // Wait, let me check server.js again.
-      // My server.js implementation was for single text, but earlier version was batch.
-      // I'll update server.js later if needed, but for now I'll assume it handles what I send.
-      // Actually, I just wrote server.js to take { text, to }.
-      // Let's change the frontend to call it 3 times or I'll fix server.js.
-      // To be safe, I'll update server.js to handle batching in the next step.
-      // For now, I'll just translate the main idea content to be simple.
-
-      const res = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: item.idea, to: 'ko' })
-      });
-      const d = await res.json();
-
-      const resTitle = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: item.title, to: 'ko' })
-      });
-      const dTitle = await resTitle.json();
-
-      setTranslations(prev => ({
-        ...prev,
-        [index]: {
-          title: dTitle.translatedText,
-          idea: d.translatedText,
-        }
-      }));
-      setShowKorean(prev => ({ ...prev, [index]: true }));
-    } catch (e) {
-      console.error(e);
-      setError("번역 처리 중 오류가 발생했습니다.");
-    } finally {
-      setIsTranslating(prev => ({ ...prev, [index]: false }));
-    }
-  };
-
   return (
     <>
       <RootContainer>
@@ -1255,19 +1150,11 @@ export default function App() {
                 {results.map((item, index) => (
                   <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
                     <div style={{ position: 'absolute', top: '$4', right: '$4', display: 'flex', gap: '$2' }}>
-                      <TranslateBtn
-                        onClick={() => handleTranslate(index, item)}
-                        loading={isTranslating[index]}
-                        active={showKorean[index]}
-                      >
-                        {isTranslating[index] ? <Loader size={12}><Sparkles size={12} /></Loader> : <Sparkles size={12} />}
-                        {showKorean[index] ? 'English' : '번역 (KR)'}
-                      </TranslateBtn>
                       <CopyButton onClick={() => handleCopy(item, index)} title="복사">
                         {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                       </CopyButton>
                     </div>
-                    {item.title && <IdeaTitle>{showKorean[index] ? translations[index]?.title : item.title}</IdeaTitle>}
+                    {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
                     {String(item.thoughtProcess || '').trim() && (
                       <ThoughtChain>
                         {String(item.thoughtProcess).split('→').map((node, i, arr) => (
@@ -1281,7 +1168,7 @@ export default function App() {
                       </ThoughtChain>
                     )}
                     <IdeaContent>
-                      {(showKorean[index] ? translations[index]?.idea : item.idea).split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
+                      {(item.idea).split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
                     </IdeaContent>
                     <IdeaMetrics>
                       <Metric>

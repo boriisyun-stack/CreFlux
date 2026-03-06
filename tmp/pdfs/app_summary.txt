@@ -1,0 +1,33 @@
+CreativityAI App Summary (Repo Evidence)
+
+What it is
+A React + Vite web app (UI title: CreFlux) that helps users generate and rank creative ideas with LLM APIs.
+Users configure provider/model/API key, generate 100 ideas, and review top 10 expanded ideas with scores.
+
+Who it is for
+Primary persona (inferred from workflow): creators, startup builders, and marketers who need fast idea exploration.
+Official target user statement: Not found in repo.
+
+What it does
+- Supports AI providers: OpenAI, Gemini, Grok, OpenRouter, and custom endpoint.
+- Enhances a short prompt, generates 100 compact ideas, then evaluates/expands top 10.
+- Displays per-idea metrics: syntax, feasibility, relevance, novelty, plus reasoning text.
+- Provides creativity control via hallucination slider and random prompt generator.
+- Adds copy tools: editable template, presets, variable tags, preview, and clipboard copy.
+- Translates title/content to Korean through POST /api/translate.
+- Includes generation progress states and a completion sound with saved volume.
+
+How it works (compact architecture)
+- Frontend: React app in src/App.jsx mounted by src/main.jsx; styles via @stitches/react.
+- LLM layer: src/lib/openai.js uses OpenAI SDK in browser mode and Gemini native REST calls.
+- Data flow: prompt -> enhancePrompt() -> generateIdeas() -> evaluateIdeasBatch() -> result cards.
+- Parsing/fallback: JSON + plain-text parsing, score clamping, fallback evaluations when parsing fails.
+- Backend: Express server.js serves dist and exposes /api/translate (DDG attempt, google-translate-api-x fallback).
+- Persistence: localStorage for copy format + sound volume; database: Not found in repo.
+
+How to run (minimal)
+1. npm install
+2. npm run build
+3. npm start  (serves dist and /api/translate at PORT or 3000)
+4. Open http://localhost:3000 and enter your API key in the configuration panel.
+Dev proxy setup for Vite -> backend during local dev: Not found in repo.
