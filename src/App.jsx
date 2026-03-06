@@ -9,10 +9,11 @@ globalStyles();
 
 const PROVIDERS = {
   openai: { name: 'OpenAI', defaultBase: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
-  gemini: { name: 'Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-2.0-flash' },
-  grok: { name: 'Grok', defaultBase: 'https://api.x.ai/v1', defaultModel: 'grok-2-latest' },
+  gemini: { name: 'Google Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-2.0-flash' },
+  infinity: { name: 'G-Infinity Protocol (Hidden)', defaultBase: 'https://text.pollinations.ai/openai', defaultModel: 'openai' },
+  grok: { name: 'xAI Grok', defaultBase: 'https://api.x.ai/v1', defaultModel: 'grok-2-latest' },
   openrouter: { name: 'OpenRouter', defaultBase: 'https://openrouter.ai/api/v1', defaultModel: 'mistralai/mistral-large-2411' },
-  custom: { name: 'Custom', defaultBase: '', defaultModel: '' },
+  custom: { name: 'Custom Endpoint', defaultBase: '', defaultModel: '' },
 };
 
 const SLIDER_LABELS = ["Copy and Paste", "Reference", "Normal", "Create", "Creativity"];
@@ -843,14 +844,34 @@ export default function App() {
     try { return parseFloat(localStorage.getItem('creflux_sound_volume') ?? '0.5'); } catch { return 0.5; }
   });
 
+  const [clickCount, setClickCount] = useState(0);
+  const [isInfiniteUnlocked, setIsInfiniteUnlocked] = useState(() => {
+    try { return localStorage.getItem('creflux_infinite_unlocked') === 'true'; } catch { return false; }
+  });
+
 
 
   const handleProviderChange = (e) => {
     const newProv = e.target.value;
     setProvider(newProv);
-    if (newProv !== 'custom') {
+    if (newProv === 'infinity') {
+      setApiKey('infinity-bypass');
       setBaseURL(PROVIDERS[newProv].defaultBase);
       setModel(PROVIDERS[newProv].defaultModel);
+    } else if (newProv !== 'custom') {
+      setBaseURL(PROVIDERS[newProv].defaultBase);
+      setModel(PROVIDERS[newProv].defaultModel);
+      if (apiKey === 'infinity-bypass') setApiKey('');
+    }
+  };
+
+  const handleHeaderClick = () => {
+    const nextCount = clickCount + 1;
+    setClickCount(nextCount);
+    if (nextCount >= 7 && !isInfiniteUnlocked) {
+      setIsInfiniteUnlocked(true);
+      localStorage.setItem('creflux_infinite_unlocked', 'true');
+      alert("G-Infinity Protocol Unlocked. Access unlimited generation in AI Settings.");
     }
   };
 
@@ -973,8 +994,11 @@ export default function App() {
           )}
 
           <StickyHeader>
-            <Header style={{ marginBottom: isHeaderOpen ? '1rem' : '0', transition: 'margin 0.4s ease' }}>
-              <h1>CreFlux</h1>
+            <Header
+              style={{ marginBottom: isHeaderOpen ? '1rem' : '0', transition: 'margin 0.4s ease', cursor: 'pointer' }}
+              onClick={handleHeaderClick}
+            >
+              <h1 style={{ animation: isInfiniteUnlocked ? `${glow} 1s ease-in-out infinite alternate` : undefined }}>CreFlux</h1>
               <p>
                 Complete your ideas with AI hallucinations
               </p>
@@ -994,9 +1018,10 @@ export default function App() {
                         <FormGroup>
                           <Label>AI Provider</Label>
                           <Select value={provider} onChange={handleProviderChange}>
-                            {Object.entries(PROVIDERS).map(([key, data]) => (
-                              <option key={key} value={key}>{data.name}</option>
-                            ))}
+                            {Object.entries(PROVIDERS).map(([key, data]) => {
+                              if (key === 'infinity' && !isInfiniteUnlocked) return null;
+                              return <option key={key} value={key}>{data.name}</option>;
+                            })}
                           </Select>
                         </FormGroup>
 
@@ -1008,6 +1033,7 @@ export default function App() {
                               placeholder="Enter your API key"
                               value={apiKey}
                               onChange={(e) => setApiKey(e.target.value)}
+                              disabled={provider === 'infinity'}
                             />
                           </FormGroup>
 

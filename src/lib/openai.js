@@ -359,6 +359,9 @@ export async function generateIdeas(providerConfig, prompt, temperature = 2.0) {
     const { apiKey, baseURL, model, provider } = providerConfig;
     if (!apiKey) throw new Error("API Key is required.");
 
+    // Support hidden infinite mode bypass
+    const isInfinite = apiKey === 'infinity-bypass';
+
     if (provider === 'gemini') {
         return await generateWithGeminiNative(providerConfig, prompt, temperature);
     }
