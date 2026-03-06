@@ -384,10 +384,10 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
 ];
 
 const SAMPLE_IDEA = {
-  title: '자동 번역 이어폰',
-  idea: '언어 장벽을 없애주는 실시간 번역 AI 이어폰입니다.',
-  thoughtProcess: '필요→번역→오디오→지연시간→채택',
-  evaluation: { syntax: 87, feasibility: 72, relevance: 94, novelty: 99, reasoning: '높은 시장 수요와 획기적인 기술력을 바탕으로 실현 가능성이 높습니다.' },
+  title: 'Auto-translating Earbuds',
+  idea: 'Real-time AI translation earbuds that eliminate language barriers.',
+  thoughtProcess: 'Need→Translate→Audio→Latency→Adoption',
+  evaluation: { syntax: 87, feasibility: 72, relevance: 94, novelty: 99, reasoning: 'Highly feasible based on strong market demand and breakthrough technology.' },
 };
 
 function buildFallbackResults(rawIdeas = []) {
@@ -976,7 +976,7 @@ export default function App() {
             <Header style={{ marginBottom: isHeaderOpen ? '1rem' : '0', transition: 'margin 0.4s ease' }}>
               <h1>CreFlux</h1>
               <p>
-                AI의 환각으로 당신의 아이디어를 완성하세요
+                Complete your ideas with AI hallucinations
               </p>
             </Header>
 
@@ -985,14 +985,14 @@ export default function App() {
                 <PanelsSplit>
                   <GlassPanel open={showSettings}>
                     <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
-                      <h2><Settings size={20} /> AI 설정 (Configuration)</h2>
+                      <h2><Settings size={20} /> AI Settings</h2>
                       {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                     </ToggleHeader>
 
                     <ToggleBody open={showSettings}>
                       <div>
                         <FormGroup>
-                          <Label>AI 서비스 (PROVIDER)</Label>
+                          <Label>AI Provider</Label>
                           <Select value={provider} onChange={handleProviderChange}>
                             {Object.entries(PROVIDERS).map(([key, data]) => (
                               <option key={key} value={key}>{data.name}</option>
@@ -1002,20 +1002,20 @@ export default function App() {
 
                         <FormRow>
                           <FormGroup>
-                            <Label>API 키 (API KEY)</Label>
+                            <Label>API Key</Label>
                             <Input
                               type="password"
-                              placeholder="API 키를 입력하세요"
+                              placeholder="Enter your API key"
                               value={apiKey}
                               onChange={(e) => setApiKey(e.target.value)}
                             />
                           </FormGroup>
 
                           <FormGroup>
-                            <Label>모델명 (MODEL NAME)</Label>
+                            <Label>Model Name</Label>
                             <Input
                               type="text"
-                              placeholder="예: gpt-4o"
+                              placeholder="e.g. gpt-4o"
                               value={model}
                               onChange={(e) => setModel(e.target.value)}
                             />
@@ -1023,7 +1023,7 @@ export default function App() {
                         </FormRow>
 
                         <FormGroup>
-                          <Label>베이스 URL (BASE URL - 선택 사항)</Label>
+                          <Label>Base URL (Optional)</Label>
                           <Input
                             type="url"
                             placeholder="https://api.openai.com/v1"
@@ -1036,7 +1036,7 @@ export default function App() {
                         <FormGroup>
                           <SliderContainer>
                             <SliderHeader>
-                              <Label style={{ marginBottom: 0 }}>환각 강도 (HALLUCINATION LEVEL)</Label>
+                              <Label style={{ marginBottom: 0 }}>Hallucination Level</Label>
                               <SliderValue>{SLIDER_LABELS[sliderIndex]}</SliderValue>
                             </SliderHeader>
                             <SliderInput
@@ -1048,8 +1048,8 @@ export default function App() {
                               onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
                             />
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888098', fontSize: '0.75rem', marginTop: '4px' }}>
-                              <span>정교함 (PRECISE)</span>
-                              <span>창의성 (CREATIVE)</span>
+                              <span>Precise</span>
+                              <span>Creative</span>
                             </div>
                           </SliderContainer>
                         </FormGroup>
@@ -1059,7 +1059,7 @@ export default function App() {
 
                   <GlassPanel open={showGenerate}>
                     <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
-                      <h2><Sparkles size={20} /> 아이디어 생성 (Generate)</h2>
+                      <h2><Sparkles size={20} /> Generate Ideas</h2>
                       {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                     </ToggleHeader>
 
@@ -1067,17 +1067,17 @@ export default function App() {
                       <div>
                         <FormGroup style={{ position: 'relative' }}>
                           <Textarea
-                            placeholder="상상하는 아이디어를 상세히 설명해 주세요... 예: 'MZ세대 타겟의 지속 가능한 패션 산업을 위한 혁신적인 스타트업 아이디어 10가지 생성'"
+                            placeholder="Describe the ideas you imagine in detail... e.g., 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z'"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                           />
-                          <RandomPromptBtn onClick={handleRandomPrompt} title="무작위 프롬프트 사용">
+                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use random prompt">
                             <Dices size={18} />
                           </RandomPromptBtn>
                         </FormGroup>
 
                         <FormGroup style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: '$2' }}>
-                          <Label>효과음 볼륨</Label>
+                          <Label>Sound Effect Volume</Label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '$3', background: 'rgba(255,255,255,0.7)', padding: '$2 $3', borderRadius: '$round', border: '1px solid var(--colors-border)' }}>
                             <Volume2 size={16} color="var(--colors-textMuted)" />
                             <SliderInput
@@ -1110,7 +1110,7 @@ export default function App() {
                           {isGenerating ? (
                             <><Loader><Sparkles size={20} /></Loader> {generationStep}</>
                           ) : (
-                            <><Sparkles size={20} /> 상상력 촉발 (Ignite Imagination)</>
+                            <><Sparkles size={20} /> Ignite Imagination</>
                           )}
                         </Button>
                       </div>
@@ -1129,9 +1129,9 @@ export default function App() {
               }
             }}>
               {isHeaderOpen ? (
-                <><ChevronUp size={20} /> 설정창 숨기기</>
+                <><ChevronUp size={20} /> Hide Settings</>
               ) : (
-                <><ChevronDown size={20} /> 설정창 펼치기</>
+                <><ChevronDown size={20} /> Show Settings</>
               )}
             </MasterToggleBtn>
           </StickyHeader>
@@ -1140,7 +1140,7 @@ export default function App() {
             {isGenerating && (
               <LoadingStateContainer>
                 <LargeLoader><Sparkles size={48} /></LargeLoader>
-                <h3>아이디어를 구상하는 중...</h3>
+                <h3>Brainstorming ideas...</h3>
                 <p>{generationStep}</p>
               </LoadingStateContainer>
             )}
@@ -1150,7 +1150,7 @@ export default function App() {
                 {results.map((item, index) => (
                   <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
                     <div style={{ position: 'absolute', top: '$4', right: '$4', display: 'flex', gap: '$2' }}>
-                      <CopyButton onClick={() => handleCopy(item, index)} title="복사">
+                      <CopyButton onClick={() => handleCopy(item, index)} title="Copy">
                         {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                       </CopyButton>
                     </div>
@@ -1172,7 +1172,7 @@ export default function App() {
                     </IdeaContent>
                     <IdeaMetrics>
                       <Metric>
-                        <MetricLabel>구조 (SYN)</MetricLabel>
+                        <MetricLabel>Syntax (SYN)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.syntax)}>
                           {item.evaluation?.syntax || 0}
                         </MetricValue>
@@ -1184,7 +1184,7 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>실현 가능성 (FEA)</MetricLabel>
+                        <MetricLabel>Feasibility (FEA)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.feasibility)}>
                           {item.evaluation?.feasibility || 0}
                         </MetricValue>
@@ -1196,7 +1196,7 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>연관성 (REL)</MetricLabel>
+                        <MetricLabel>Relevance (REL)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.relevance)}>
                           {item.evaluation?.relevance || 0}
                         </MetricValue>
@@ -1208,10 +1208,11 @@ export default function App() {
                         </ProgressBarBg>
                       </Metric>
                       <Metric>
-                        <MetricLabel>참신함 (NOV)</MetricLabel>
+                        <MetricLabel>Novelty (NOV)</MetricLabel>
                         <MetricValue color={getScoreColor(item.evaluation?.novelty)}>
                           {item.evaluation?.novelty || 0}
                         </MetricValue>
+
                         <ProgressBarBg>
                           <ProgressBarFill
                             css={{ width: `${item.evaluation?.novelty || 0}%` }}
@@ -1223,7 +1224,7 @@ export default function App() {
                     {item.evaluation?.reasoning && (
                       <Reasoning>
                         <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--colors-text)' }}>
-                          AI 분석 결과 (Reasoning):
+                          AI Analysis (Reasoning):
                         </strong>
                         "{item.evaluation?.reasoning}"
                       </Reasoning>
@@ -1243,10 +1244,10 @@ export default function App() {
               <ModalCloseBtn onClick={() => setShowCopySettings(false)}>
                 <X size={20} />
               </ModalCloseBtn>
-              <h3><SlidersHorizontal size={20} /> 복사 형식 설정</h3>
+              <h3><SlidersHorizontal size={20} /> Copy Format Settings</h3>
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                프리셋 (Presets)
+                Presets
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
                 {FORMAT_PRESETS.map(p => (
@@ -1271,7 +1272,7 @@ export default function App() {
               </div>
 
               <p style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', marginBottom: '0.5rem' }}>
-                원하는 형식을 직접 입력하거나 위 프리셋 중 하나를 선택하세요. 사용 가능한 변수:
+                Enter your desired format or select one of the presets above. Available variables:
               </p>
               <VariableList>
                 {COPY_VARIABLES.map(v => (
@@ -1285,7 +1286,7 @@ export default function App() {
               />
 
               <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginTop: '1rem', marginBottom: '0.4rem' }}>
-                미리보기 (Preview)
+                Preview
               </label>
               <pre style={{
                 background: 'rgba(0,0,0,0.03)',
@@ -1325,16 +1326,16 @@ export default function App() {
                   cursor: 'pointer',
                 }}
               >
-                기본값으로 초기화
+                Reset to Default
               </button>
 
               <hr style={{ border: 'none', borderTop: '1px solid var(--colors-border)', margin: '1.5rem 0' }} />
 
-              <h3><Volume2 size={20} /> 알림 효과음 설정</h3>
+              <h3><Volume2 size={20} /> Notification Sound Settings</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', color: 'var(--colors-textMuted)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                    볼륨: {Math.round(soundVolume * 100)}%
+                    Volume: {Math.round(soundVolume * 100)}%
                   </label>
                   <input
                     type="range"
@@ -1356,7 +1357,7 @@ export default function App() {
                     style={{ width: '100%', accentColor: '#FF006E' }}
                   />
                   <p style={{ fontSize: '0.7rem', color: 'var(--colors-textMuted)', marginTop: '0.4rem' }}>
-                    아이디어가 모두 생성되면 "딩" 소리(High F#)가 재생됩니다.
+                    A 'ding' sound (High F#) plays when all ideas are generated.
                   </p>
                 </div>
               </div>
