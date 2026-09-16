@@ -355,47 +355,6 @@ const TagBadge = styled('span', {
   width: 'fit-content',
 });
 
-const CatalystSelectorWrapper = styled('div', {
-  marginBottom: '$3',
-});
-
-const CatalystGrid = styled('div', {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '$2',
-  marginTop: '$2',
-});
-
-const CatalystPill = styled('button', {
-  padding: '0.35rem 0.75rem',
-  borderRadius: '$round',
-  border: '1px solid $border',
-  background: '$surface',
-  color: '$textMuted',
-  fontSize: '0.8rem',
-  fontWeight: 600,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '4px',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    borderColor: '$primary',
-    color: '$primary',
-    transform: 'translateY(-1px)',
-  },
-  variants: {
-    active: {
-      true: {
-        background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.15), rgba(58, 134, 255, 0.15))',
-        borderColor: '$primary',
-        color: '$primary',
-        boxShadow: '0 2px 8px rgba(255, 0, 110, 0.15)',
-      },
-    },
-  },
-});
-
 const ThoughtChain = styled('div', {
   fontSize: '0.8rem',
   color: '$textMuted',
@@ -407,14 +366,6 @@ const ThoughtChain = styled('div', {
   gap: '4px',
   opacity: 0.8,
 });
-
-const CATALYST_MODES = [
-  { id: 'auto', label: '⚡ Auto Hybrid', desc: 'Cross-pollinates Bisociation, PO & SMILE naming' },
-  { id: 'bisociation', label: '💥 Bisociation', desc: 'Colliding two unrelated domains for radical novelty' },
-  { id: 'provocation', label: '🚀 PO (Provocation)', desc: 'Violating industry norms & stepping stone leaps' },
-  { id: 'oblique', label: '🎲 Oblique & Invert', desc: 'Extreme constraints & inverting the problem' },
-  { id: 'naming', label: '🏷️ SMILE Brand Lab', desc: 'World-class phonetics & sticky brand naming' },
-];
 
 const DEFAULT_COPY_FORMAT = `[{title}] - {tag}
 {thoughtProcess}
@@ -1159,10 +1110,6 @@ export default function App() {
     } catch { return 4; }
   });
 
-  const [catalystMode, setCatalystMode] = useState(() => {
-    try { return localStorage.getItem('creflux_catalyst_mode') || 'auto'; } catch { return 'auto'; }
-  });
-
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('default');
 
@@ -1251,11 +1198,6 @@ export default function App() {
     try { localStorage.setItem('creflux_slider_index', String(val)); } catch (err) { console.warn(err); }
   };
 
-  const handleCatalystModeChange = (val) => {
-    setCatalystMode(val);
-    try { localStorage.setItem('creflux_catalyst_mode', val); } catch (err) { console.warn(err); }
-  };
-
   const handleClearResults = () => {
     setResults([]);
     try { localStorage.removeItem('creflux_saved_results'); } catch (err) { console.warn(err); }
@@ -1290,7 +1232,7 @@ export default function App() {
     };
 
     try {
-      const enhancedPrompt = await enhancePrompt(providerConfig, prompt, catalystMode);
+      const enhancedPrompt = await enhancePrompt(providerConfig, prompt);
 
       setGenerationStep("Spawning 15 ideas...");
       const creativityLevel = sliderIndex * 0.5;
@@ -1532,32 +1474,13 @@ export default function App() {
 
                     <ToggleBody open={showGenerate}>
                       <div>
-                        <CatalystSelectorWrapper>
-                          <Label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                            <Sparkles size={14} color="var(--colors-primary)" /> Creative Catalyst Framework
-                          </Label>
-                          <CatalystGrid>
-                            {CATALYST_MODES.map((m) => (
-                              <CatalystPill
-                                key={m.id}
-                                type="button"
-                                active={catalystMode === m.id}
-                                onClick={() => handleCatalystModeChange(m.id)}
-                                title={m.desc}
-                              >
-                                {m.label}
-                              </CatalystPill>
-                            ))}
-                          </CatalystGrid>
-                        </CatalystSelectorWrapper>
-
                         <FormGroup style={{ position: 'relative' }}>
                           <Textarea
                             placeholder="Describe the ideas you imagine in detail... e.g., 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z'"
                             value={prompt}
                             onChange={(e) => handlePromptChange(e.target.value)}
                           />
-                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use random prompt across 5 creative archetypes">
+                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use random prompt across 8 creative archetypes">
                             <Dices size={18} />
                           </RandomPromptBtn>
                         </FormGroup>
