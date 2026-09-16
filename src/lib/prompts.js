@@ -1,41 +1,75 @@
-const verbs = [
-    "Reimagine", "Redesign", "Simplify", "Personalize", "Localize",
-    "Prototype", "Remix", "Map", "Curate", "Streamline",
-    "Augment", "Visualize", "Forecast", "Translate", "Archive",
-    "Choreograph", "Recontextualize", "Invert", "Blend", "Layer",
-    "Compress", "Expand", "Humanize", "Modularize", "Democratize",
-    "Coordinate", "Document", "Celebrate", "Refresh", "Make accessible"
+const domainsA = [
+    "Formula 1 Pitstop Crew", "Deep-Sea Bioluminescence", "Mycelium Networks", "Origami Architecture",
+    "Air Traffic Control", "Monastic Silence", "Street Magic & Illusion", "Quantum Cryptography",
+    "Michelin-Star Plating", "Emergency Room Triage", "Ancient Cartography", "Jazz Improvisation",
+    "Symbiotic Parasitism", "High-Frequency Trading", "Watchmaking Micro-Mechanics"
+];
+
+const domainsB = [
+    "Urban Commute & Transit", "Mental Health & Burnout", "Personal Finance & Debt", "Sleep & Circadian Rhythms",
+    "Collaborative Remote Work", "Language Learning", "Food Waste & Leftovers", "Memory Retention & Aging",
+    "Neighborhood Security", "Wardrobe & Sustainable Fashion", "Online Dating & Connection", "Physical Rehabilitation"
+];
+
+const provocations = [
+    "PO: What if cars had zero wheels?",
+    "PO: What if restaurants had no menus or food?",
+    "PO: What if phones had no screens or speakers?",
+    "PO: What if school had no teachers or curriculum?",
+    "PO: What if hospitals only treated healthy people?",
+    "PO: What if books read the human instead?",
+    "PO: What if bank accounts started at zero every Monday?",
+    "PO: What if clothing was completely intangible?"
+];
+
+const obliqueRules = [
+    "Honor your most embarrassing failure as the core feature.",
+    "Eliminate all vowels from the communication channel.",
+    "Make the slowest part of the process the main selling point.",
+    "Design it as if it must run entirely on 1980s analog technology.",
+    "Remove the expert: the product must be operable by a 5-year-old in darkness.",
+    "Invert the pricing: the user gets paid when they use it correctly.",
+    "Use tactical silence as the primary user interface."
 ];
 
 const subjects = [
-    "public transport", "eating lunch", "sleeping", "doing laundry", "grocery shopping",
-    "brushing teeth", "commuting", "paying taxes", "attending meetings", "learning a language",
-    "exercising", "meditating", "brewing coffee", "job interviews", "reading books",
-    "watching movies", "listening to music", "cleaning the house", "breathing exercises", "small talk",
-    "waiting in line", "getting a haircut", "choosing a show", "apologizing", "tying shoelaces",
-    "staring at the ceiling", "procrastinating", "writing emails", "parallel parking", "remembering passwords",
-    "waking up", "drinking water", "making eye contact", "ignoring phone calls", "dreaming",
-    "feeling guilty", "getting rejected", "losing your keys", "forgetting a name", "talking to yourself",
-    "the concept of time", "human memory", "the alphabet", "the immune system", "democracy",
-    "the food chain", "boredom", "community events", "remote work", "neighborhood planning"
-];
-
-const constraints = [
-    " using only sound.", " in zero gravity.", " with a budget of zero.",
-    " using open data.", " in virtual reality.", " with AI agents.",
-    " without electricity.", " underwater.", " in the dark.", " while blindfolded.",
-    " inside a lucid dream.", " with a five-minute time limit.", " for a public library.", " for a classroom.", " for a neighborhood group.",
-    " communicating only in icons.", " using only one page.", " powered by community participation.", " using only 1990s technology.", " inside a simulation.",
-    " using only a spreadsheet.", " running on a slow connection.", " designed for accessibility first.", " built from recyclable materials.", " with no screen.",
-    " using only emojis.", " without using any vowels.", " communicating through movement.", " using only smells.", " without using the letter E.",
-    " using only movie quotes.", " speaking entirely in questions.", " while forgetting everything every 10 seconds.", " during a citywide festival.", " at the bottom of the Mariana Trench.",
-    " using quantum entanglement as a metaphor.", " for people with limited time.", " as a weekend prototype.", " as a tabletop activity.", " for a tiny team."
+    "public transport", "personal sleep hygiene", "job interviews", "reading complex books",
+    "neighborhood community building", "learning programming", "brewing artisan coffee",
+    "mindful meditation", "remote team alignment", "grocery shopping with zero waste",
+    "creative writing blocks", "managing personal energy cycles", "cross-cultural negotiation"
 ];
 
 export function getRandomPrompt() {
-    const v = verbs[Math.floor(Math.random() * verbs.length)];
-    const s = subjects[Math.floor(Math.random() * subjects.length)];
-    const c = constraints[Math.floor(Math.random() * constraints.length)];
+    const archetype = Math.floor(Math.random() * 5);
 
-    return `${v} the experience of ${s}${c}`;
+    if (archetype === 0) {
+        // Bisociation (Cross-domain collision)
+        const a = domainsA[Math.floor(Math.random() * domainsA.length)];
+        const b = domainsB[Math.floor(Math.random() * domainsB.length)];
+        return `Apply Bisociation: Collide the mechanics of ${a} with ${b} to invent a radical solution with a killer brand name.`;
+    }
+
+    if (archetype === 1) {
+        // Provocation & Movement (PO)
+        const po = provocations[Math.floor(Math.random() * provocations.length)];
+        return `Provocation & Movement: Start with "${po}" and pivot that absurdity into 15 viable, game-changing products.`;
+    }
+
+    if (archetype === 2) {
+        // Inversion (Jacobi Principle)
+        const s = subjects[Math.floor(Math.random() * subjects.length)];
+        return `Inversion Thinking: How would a malicious competitor completely ruin ${s}? Invert each failure point into a breakthrough product.`;
+    }
+
+    if (archetype === 3) {
+        // Oblique Strategy
+        const s = subjects[Math.floor(Math.random() * subjects.length)];
+        const r = obliqueRules[Math.floor(Math.random() * obliqueRules.length)];
+        return `Oblique Constraint: Reimagine ${s} under the strict rule: "${r}".`;
+    }
+
+    // SMILE Brand Naming & Innovation
+    const a = domainsA[Math.floor(Math.random() * domainsA.length)];
+    const s = subjects[Math.floor(Math.random() * subjects.length)];
+    return `SMILE Naming Lab: Create 15 inventive startup concepts for ${s} inspired by ${a}, each with a punchy, memorable brand name (Portmanteau or Metaphor).`;
 }

@@ -309,6 +309,63 @@ const IdeaTitle = styled('h3', {
   lineHeight: 1.4,
 });
 
+const TagBadge = styled('span', {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontSize: '0.72rem',
+  fontWeight: 700,
+  letterSpacing: '0.4px',
+  padding: '3px 8px',
+  borderRadius: '$round',
+  background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.08), rgba(58, 134, 255, 0.12))',
+  color: '$primary',
+  border: '1px solid rgba(255, 0, 110, 0.2)',
+  marginBottom: '$2',
+  alignSelf: 'flex-start',
+  width: 'fit-content',
+});
+
+const CatalystSelectorWrapper = styled('div', {
+  marginBottom: '$3',
+});
+
+const CatalystGrid = styled('div', {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '$2',
+  marginTop: '$2',
+});
+
+const CatalystPill = styled('button', {
+  padding: '0.35rem 0.75rem',
+  borderRadius: '$round',
+  border: '1px solid $border',
+  background: '$surface',
+  color: '$textMuted',
+  fontSize: '0.8rem',
+  fontWeight: 600,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    borderColor: '$primary',
+    color: '$primary',
+    transform: 'translateY(-1px)',
+  },
+  variants: {
+    active: {
+      true: {
+        background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.15), rgba(58, 134, 255, 0.15))',
+        borderColor: '$primary',
+        color: '$primary',
+        boxShadow: '0 2px 8px rgba(255, 0, 110, 0.15)',
+      },
+    },
+  },
+});
 
 const ThoughtChain = styled('div', {
   fontSize: '0.8rem',
@@ -322,7 +379,15 @@ const ThoughtChain = styled('div', {
   opacity: 0.8,
 });
 
-const DEFAULT_COPY_FORMAT = `[{title}]
+const CATALYST_MODES = [
+  { id: 'auto', label: '⚡ Auto Hybrid', desc: 'Cross-pollinates Bisociation, PO & SMILE naming' },
+  { id: 'bisociation', label: '💥 Bisociation', desc: 'Colliding two unrelated domains for radical novelty' },
+  { id: 'provocation', label: '🚀 PO (Provocation)', desc: 'Violating industry norms & stepping stone leaps' },
+  { id: 'oblique', label: '🎲 Oblique & Invert', desc: 'Extreme constraints & inverting the problem' },
+  { id: 'naming', label: '🏷️ SMILE Brand Lab', desc: 'World-class phonetics & sticky brand naming' },
+];
+
+const DEFAULT_COPY_FORMAT = `[{title}] - {tag}
 {thoughtProcess}
 
 {idea}
@@ -332,6 +397,7 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
 
 const COPY_VARIABLES = [
   { key: '{title}', desc: 'Idea Title' },
+  { key: '{tag}', desc: 'Archetype / Framework' },
   { key: '{idea}', desc: 'Idea Content' },
   { key: '{thoughtProcess}', desc: 'Concept Trail' },
   { key: '{syntax}', desc: 'Syntax Score' },
@@ -343,7 +409,7 @@ const COPY_VARIABLES = [
 
 const FORMAT_PRESETS = [
   {
-    key: 'default', name: 'Default', format: `[{title}]
+    key: 'default', name: 'Default', format: `[{title}] - {tag}
 {thoughtProcess}
 
 {idea}
@@ -352,15 +418,15 @@ Reasoning: {reasoning}
 Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty: {novelty}` },
   {
     key: 'notion', name: 'Notion', format: `### {title}
-*({thoughtProcess})*
+` + '`{tag}`' + ` *({thoughtProcess})*
 
 > {idea}
 
 **Reasoning:** {reasoning}
 **SYN:** {syntax} | **FEA:** {feasibility} | **REL:** {relevance} | **NOV:** {novelty}` },
-  { key: 'oneliner', name: 'One-liner', format: `[{title}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance}/NOV:{novelty})` },
+  { key: 'oneliner', name: 'One-liner', format: `[{title} / {tag}] {idea} (SYN:{syntax}/FEA:{feasibility}/REL:{relevance}/NOV:{novelty})` },
   {
-    key: 'markdown', name: 'Markdown', format: `## {title}
+    key: 'markdown', name: 'Markdown', format: `## {title} ({tag})
 *{thoughtProcess}*
 
 {idea}
@@ -373,10 +439,11 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
 - **Novelty:** {novelty}/100
 
 > {reasoning}` },
-  { key: 'simple', name: 'Simple', format: `{title}: {idea}` },
+  { key: 'simple', name: 'Simple', format: `{title} ({tag}): {idea}` },
   {
     key: 'json', name: 'JSON', format: `{
   "title": "{title}",
+  "tag": "{tag}",
   "idea": "{idea}",
   "thoughtProcess": "{thoughtProcess}",
   "scores": { "syntax": {syntax}, "feasibility": {feasibility}, "relevance": {relevance}, "novelty": {novelty} },
@@ -385,18 +452,31 @@ Syntax: {syntax} | Feasibility: {feasibility} | Relevance: {relevance} | Novelty
 ];
 
 const SAMPLE_IDEA = {
-  title: 'Auto-translating Earbuds',
-  idea: 'Real-time AI translation earbuds that eliminate language barriers.',
-  thoughtProcess: 'Need→Translate→Audio→Latency→Adoption',
-  evaluation: { syntax: 87, feasibility: 72, relevance: 94, novelty: 99, reasoning: 'Highly feasible based on strong market demand and breakthrough technology.' },
+  title: 'Vocalis Core',
+  tag: 'Sound Symbolism • Bisociation',
+  idea: 'Bionic neural acoustic earbuds translating micro-vocalizations with zero audible latency.',
+  thoughtProcess: 'Acoustics ⚡ Neuroscience → Subvocal Sensors → Real-time Neural Synthesis',
+  evaluation: { syntax: 92, feasibility: 78, relevance: 95, novelty: 98, reasoning: 'Highly resonant brand name with explosive novelty and solid biomechanical feasibility.' },
 };
 
 function buildFallbackResults(rawIdeas = []) {
+  const archetypes = [
+    'Portmanteau • Bisociation',
+    'PO Stepping Stone',
+    'Inversion Catalyst',
+    'Sound Symbolism',
+    'Oblique Strategy',
+    'Metaphoric Leap'
+  ];
+
   return rawIdeas.slice(0, 15).map((idea, index) => {
     const isObjectIdea = idea && typeof idea === 'object';
     const title = isObjectIdea
       ? (idea.t || idea.title || `Idea ${index + 1}`)
       : `Idea ${index + 1}`;
+    const tag = isObjectIdea && (idea.tag || idea.archetype)
+      ? (idea.tag || idea.archetype)
+      : archetypes[index % archetypes.length];
     const description = isObjectIdea
       ? (idea.s || idea.content || idea.idea || title)
       : String(idea || '').trim();
@@ -410,14 +490,15 @@ function buildFallbackResults(rawIdeas = []) {
 
     return {
       title,
+      tag,
       idea: description || title,
-      thoughtProcess: `${(title.split(/[\s-]/)[0] || 'Concept')}→CoreLogic→Feasibility→MarketImpact`,
+      thoughtProcess: `${(title.split(/[\s-]/)[0] || 'Concept')} ⚡ Collision → Friction → MarketLeap`,
       evaluation: {
-        syntax: 75 + (h % 21),
-        feasibility: 60 + ((h >> 3) % 31),
-        relevance: 78 + ((h >> 6) % 20),
-        novelty: 68 + ((h >> 9) % 28),
-        reasoning: 'Evaluated baseline viability and novelty.',
+        syntax: 78 + (h % 18),
+        feasibility: 65 + ((h >> 3) % 26),
+        relevance: 80 + ((h >> 6) % 18),
+        novelty: 82 + ((h >> 9) % 17),
+        reasoning: 'Evaluated baseline viability, naming resonance, and cross-domain novelty.',
       },
     };
   });
@@ -833,6 +914,7 @@ export default function App() {
   const [copiedId, setCopiedId] = useState(null);
 
   const [sliderIndex, setSliderIndex] = useState(4); // Default: Creativity (temp 2.0)
+  const [catalystMode, setCatalystMode] = useState('auto');
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
@@ -892,7 +974,7 @@ export default function App() {
     };
 
     try {
-      const enhancedPrompt = await enhancePrompt(providerConfig, prompt);
+      const enhancedPrompt = await enhancePrompt(providerConfig, prompt, catalystMode);
 
       setGenerationStep("Spawning 15 ideas...");
       const creativityLevel = sliderIndex * 0.5; // Maps 0-4 to 0.0-2.0
@@ -941,6 +1023,7 @@ export default function App() {
     const evaluation = item?.evaluation || {};
     const copyText = copyFormat
       .replace(/\{title\}/g, item?.title || '')
+      .replace(/\{tag\}/g, item?.tag || '')
       .replace(/\{thoughtProcess\}/g, item?.thoughtProcess || '')
       .replace(/\{idea\}/g, item?.idea || '')
       .replace(/\{syntax\}/g, String(evaluation.syntax || 0))
@@ -1079,13 +1162,32 @@ export default function App() {
 
                     <ToggleBody open={showGenerate}>
                       <div>
+                        <CatalystSelectorWrapper>
+                          <Label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                            <Sparkles size={14} color="var(--colors-primary)" /> Creative Catalyst Framework
+                          </Label>
+                          <CatalystGrid>
+                            {CATALYST_MODES.map((m) => (
+                              <CatalystPill
+                                key={m.id}
+                                type="button"
+                                active={catalystMode === m.id}
+                                onClick={() => setCatalystMode(m.id)}
+                                title={m.desc}
+                              >
+                                {m.label}
+                              </CatalystPill>
+                            ))}
+                          </CatalystGrid>
+                        </CatalystSelectorWrapper>
+
                         <FormGroup style={{ position: 'relative' }}>
                           <Textarea
                             placeholder="Describe the ideas you imagine in detail... e.g., 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z'"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                           />
-                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use random prompt">
+                          <RandomPromptBtn onClick={handleRandomPrompt} title="Use random prompt across 5 creative archetypes">
                             <Dices size={18} />
                           </RandomPromptBtn>
                         </FormGroup>
@@ -1168,6 +1270,7 @@ export default function App() {
                         {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
                       </CopyButton>
                     </div>
+                    {item.tag && <TagBadge>🏷️ {item.tag}</TagBadge>}
                     {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
                     {String(item.thoughtProcess || '').trim() && (
                       <ThoughtChain>
@@ -1318,6 +1421,7 @@ export default function App() {
               }}>
                 {copyFormat
                   .replace(/\{title\}/g, SAMPLE_IDEA.title)
+                  .replace(/\{tag\}/g, SAMPLE_IDEA.tag)
                   .replace(/\{thoughtProcess\}/g, SAMPLE_IDEA.thoughtProcess)
                   .replace(/\{idea\}/g, SAMPLE_IDEA.idea)
                   .replace(/\{syntax\}/g, String(SAMPLE_IDEA.evaluation.syntax))

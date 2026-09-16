@@ -205,19 +205,20 @@ function normalizeIdeas(ideasLike) {
                 const summary = item.trim();
                 if (!summary) return null;
                 const title = summary.length > 60 ? `${summary.slice(0, 57)}...` : summary;
-                return { t: title, s: summary };
+                return { t: title, s: summary, tag: 'Bisociation' };
             }
             if (!item || typeof item !== 'object') return null;
 
             const summary = asString(item.s ?? item.summary ?? item.content ?? item.idea ?? item.description);
             let title = asString(item.t ?? item.title ?? item.name ?? item.topic);
+            const tag = asString(item.tag ?? item.archetype ?? item.method ?? 'Bisociation');
 
             if (!title && summary) {
                 title = summary.split(/[.!?]/)[0].slice(0, 60).trim();
             }
             if (!title) title = `Idea ${index + 1}`;
 
-            return { t: title, s: summary || title };
+            return { t: title, s: summary || title, tag };
         })
         .filter(Boolean);
 }
@@ -237,21 +238,31 @@ function generateHeuristicScores(title, summary, index) {
     };
 }
 
+const DEFAULT_ARCHETYPES = [
+    'Portmanteau • Bisociation',
+    'Metaphor • Inversion',
+    'Neologism • PO Provocation',
+    'Sound Symbolism • Mashup',
+    'Oblique Shift • Synthesis'
+];
+
 function fallbackEvaluations(ideasArray) {
     return normalizeIdeas(ideasArray).slice(0, 15).map((idea, index) => {
         const title = idea.t || `Idea ${index + 1}`;
         const ideaText = idea.s || idea.t || '';
+        const tag = idea.tag || DEFAULT_ARCHETYPES[index % DEFAULT_ARCHETYPES.length];
         const scores = generateHeuristicScores(title, ideaText, index);
         return {
             title,
+            tag,
             idea: ideaText,
-            thoughtProcess: `${(title.split(/[\s-]/)[0] || 'Concept')}→CoreLogic→Feasibility→MarketImpact`,
+            thoughtProcess: `${(title.split(/[\s-]/)[0] || 'Concept')}→DomainCross→SMILE_Naming→MarketPivot`,
             evaluation: {
                 syntax: scores.syntax,
                 feasibility: scores.feasibility,
                 relevance: scores.relevance,
                 novelty: scores.novelty,
-                reasoning: 'Evaluated baseline viability and novelty.',
+                reasoning: 'Evaluated baseline viability, sound symbolism, and conceptual novelty.',
             },
         };
     });
@@ -294,12 +305,36 @@ function parseIdeasFromPlainText(text) {
     return ideas;
 }
 
-// ── Compact generation prompt (title + 1-line summary only) ──
-const GEN_SYSTEM = `Creative brainstorming assistant. Generate 15 original, useful, unconventional ideas from the user's topic. Keep ideas safe to share publicly and avoid harmful instructions. Each idea: short title + 1-sentence summary (max 15 words). English only. JSON: {"ideas":[{"t":"Title","s":"One-line summary"},…]}`;
+// ── Advanced Creative Ideation & SMILE Naming System Prompt ──
+const GEN_SYSTEM = `Elite Innovation & Brand Naming Catalyst. Generate 15 genuinely creative, radical, unconventional concepts inspired by the user's topic.
+Apply top ideation & naming frameworks:
+1. Bisociation (collide user topic with unexpected alien domains like F1 pitstops, mycelium networks, origami, quantum crypt, deep-sea biology).
+2. Provocation & Movement (PO - invert sacred cows, start from absurdities, pivot to brilliance).
+3. Inversion Thinking (solve by flipping worst-case failures).
+4. World-Class Naming (Alexandra Watkins' SMILE principles & sound symbolism): Give every idea a killer, sticky brand/codename (Portmanteau, Metaphor, or Punchy Neologism with plosive/fricative phonetics like Spotify, Tinder, Stripe, CreFlux), NEVER a boring generic description.
 
-// ── Compact evaluation prompt (picks top 15, writes full content) ──
-const EVAL_SYSTEM = `Evaluator. From 15 idea summaries and the user prompt, evaluate all 15 ideas. For each, WRITE a full expanded paragraph of content (2-4 sentences), a concise concept trail (5-7 words linked by →), and score 0-100 on: syntax, feasibility, relevance, novelty. English only. JSON:
-{"evaluations":[{"i":index,"title":"Title","content":"Full expanded idea content…","thoughtProcess":"Word→Word→Word","syn":n,"fea":n,"rel":n,"nov":n,"reason":"1 sentence"}]}`;
+Each idea format:
+- "t": Killer Brand Name (e.g. "VeloSpike", "SynapTree", "ChronoSpoon", "OmniFlux")
+- "tag": Primary naming/ideation archetype (e.g. "Portmanteau • Bisociation", "Metaphor • Inversion", "Neologism • PO", "Fricative • Oblique")
+- "s": 1-sentence punchy summary of the breakthrough mechanism (max 18 words).
+
+English only. Respond strictly in JSON:
+{"ideas":[{"t":"BrandName","tag":"Archetype","s":"Punchy summary"},…]}`;
+
+// ── Advanced Evaluation & Creative Leap System Prompt ──
+const EVAL_SYSTEM = `Innovation Evaluator & Naming Critic. From 15 idea summaries and the user prompt, evaluate all 15 ideas.
+For each idea:
+1. WRITE a full expanded paragraph (2-3 sentences) detailing the clever real-world execution mechanics.
+2. Formulate an evocative creative leap trail in "thoughtProcess" (5-7 nodes linked by →, e.g. "Domain A × Domain B → PO: Zero Friction → Portmanteau Naming → Market Pivot").
+3. Score 0-100 on:
+   - syn (Syntax / Brand Punch): Naming stickiness, phonetic appeal, SMILE test compliance (Suggestive, Memorable, Imagery).
+   - fea (Feasibility): Engineering & practical execution potential.
+   - rel (Relevance): Core problem-solving value.
+   - nov (Novelty): True unconventional originality (heavily penalize predictable clichés).
+4. Provide a 1-sentence reason highlighting the creative pivot and naming strength.
+
+English only. Output must be a valid JSON object matching this schema:
+{"evaluations":[{"i":index,"title":"BrandName","tag":"Archetype","content":"Expanded idea paragraph…","thoughtProcess":"Inspiration→PO→Naming→Pivot","syn":n,"fea":n,"rel":n,"nov":n,"reason":"1 sentence"}]}`;
 
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
@@ -401,10 +436,12 @@ function mapEvalResults(evaluations, ideasArray) {
             const relevance = rawRel !== undefined && rawRel !== null ? clampScore(rawRel) : defaultScores.relevance;
             const novelty = rawNov !== undefined && rawNov !== null ? clampScore(rawNov) : defaultScores.novelty;
 
+            const tag = asString(item.tag ?? item.archetype ?? item.method ?? baseIdea?.tag ?? 'Creative Catalyst');
             const reasoning = asString(item.reason ?? item.reasoning ?? item.rationale ?? 'Evaluated based on conceptual alignment and practicality.');
 
             return {
                 title,
+                tag,
                 idea,
                 thoughtProcess,
                 evaluation: {
@@ -451,7 +488,8 @@ async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasA
         throw new Error(errMsg);
     }
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const text = parts.map((part) => asString(part?.text)).filter(Boolean).join('\n').trim();
     if (!text) throw new Error('Gemini returned no content during evaluation.');
     const result = parseLLMJson(text);
     const mapped = mapEvalResults(result.evaluations ?? result, ideasArray);
@@ -580,10 +618,15 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
 }
 
 /**
- * Enhances a short user prompt into a structured command.
- * Now done client-side to save an API call.
+ * Enhances user prompt into a structured command using specialized ideation catalyst modes.
  */
-export async function enhancePrompt(_providerConfig, prompt) {
-    // No API call — just wrap the prompt locally
-    return `Find me 15 creative, unconventional, publicly shareable ideas for: ${prompt}`;
+export async function enhancePrompt(_providerConfig, prompt, catalystMode = 'auto') {
+    const catalystInstructions = {
+        bisociation: `Apply Bisociation & Cross-Domain Collision: Pair "${prompt}" with surprising external fields (e.g., aerospace, mycology, street magic, deep-sea biology) to generate 15 radical concepts with sticky SMILE brand names.`,
+        provocation: `Apply Provocation & Movement (PO): Start with impossible or inverted assumptions about "${prompt}", then pivot each absurdity into 15 feasible, game-changing breakthroughs with punchy brand names.`,
+        oblique: `Apply Oblique Strategies & Extreme Paradoxical Constraints: Impose striking unconventional rules on "${prompt}" to discover 15 unexpected, ingenious ideas with catchy brand names.`,
+        naming: `Apply World-Class Brand Naming Lab (SMILE Test & Sound Symbolism: Portmanteau, Metaphor, Kiki/Bouba phonetics): Invent 15 high-market-value products for "${prompt}" with unforgettable names.`,
+        auto: `Apply elite creative thinking (Bisociation, PO Provocation, Inversion, SMILE Brand Naming): generate 15 genuinely unconventional, game-changing ideas for: ${prompt}`
+    };
+    return catalystInstructions[catalystMode] || catalystInstructions.auto;
 }
