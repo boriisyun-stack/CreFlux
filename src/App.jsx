@@ -1,6 +1,23 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { generateIdeas, evaluateIdeasBatch, enhancePrompt } from './lib/openai';
-import { Settings, Sparkles, ChevronDown, ChevronUp, AlertCircle, Copy, Check, Dices, X, SlidersHorizontal, Volume2 } from 'lucide-react';
+import {
+  Settings,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  Copy,
+  Check,
+  Dices,
+  X,
+  SlidersHorizontal,
+  Volume2,
+  Search,
+  ArrowUpDown,
+  Trash2,
+  CheckCheck,
+  Zap,
+} from 'lucide-react';
 import { styled, globalStyles, keyframes } from './stitches.config';
 import { getRandomPrompt } from './lib/prompts';
 
@@ -30,50 +47,63 @@ const spin = keyframes({
 });
 
 const slideUp = keyframes({
-  from: { opacity: 0, transform: 'translateY(20px)' },
+  from: { opacity: 0, transform: 'translateY(18px)' },
   to: { opacity: 1, transform: 'translateY(0)' }
+});
+
+const popIn = keyframes({
+  '0%': { opacity: 0, transform: 'scale(0.92) translateY(6px)' },
+  '100%': { opacity: 1, transform: 'scale(1) translateY(0)' },
 });
 
 const RootContainer = styled('div', {
   display: 'flex',
   justifyContent: 'center',
   width: '100%',
+  minHeight: '100vh',
+  overflowX: 'hidden',
 });
 
 const AppContainer = styled('div', {
   width: '100%',
-  maxWidth: '1200px', // Restored to 1200px (user only wanted UI panels wider)
+  maxWidth: '1200px',
   display: 'flex',
   flexDirection: 'column',
-  padding: '0 $5 $5 $5', // Left, right, bottom padding
+  padding: '0 $5 $5 $5',
+  '@media (max-width: 768px)': {
+    padding: '0 $3 $4 $3',
+  }
 });
 
 const StickyHeader = styled('div', {
   position: 'sticky',
-  top: '$4', // Floating top
+  top: '$4',
   zIndex: 100,
-  backgroundColor: 'rgba(248, 249, 250, 0.85)',
+  backgroundColor: 'rgba(248, 249, 250, 0.9)',
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
-  width: '120%', // Make the panels block 1.2x wider
-  marginLeft: '-10%', // Center the artificially widened block
-  marginRight: '-10%',
-  marginBottom: '$5',
+  width: '100%',
+  maxWidth: '1200px',
+  margin: '0 auto $5 auto',
   padding: '$5',
-  borderRadius: '$7', // Fully rounded island
+  borderRadius: '$6',
   border: '1px solid $border',
-  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
+  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.08)',
   display: 'flex',
   flexDirection: 'column',
   gap: '$4',
-  transition: 'all 0.3s ease',
+  transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
   paddingTop: '$4',
-  paddingBottom: '2.5rem', // Reduced from 4rem for tighter spacing
+  paddingBottom: '2.5rem',
+  '@media (max-width: 768px)': {
+    padding: '$3 $3 2.5rem $3',
+    borderRadius: '$4',
+  }
 });
 
 const MasterToggleBtn = styled('button', {
   position: 'absolute',
-  bottom: '-12px', // Moved up slightly from -16px
+  bottom: '-14px',
   left: '50%',
   transform: 'translateX(-50%)',
   background: 'linear-gradient(135deg, $primary, $secondary)',
@@ -86,16 +116,16 @@ const MasterToggleBtn = styled('button', {
   gap: '$2',
   cursor: 'pointer',
   fontWeight: 600,
-  fontSize: '1rem',
+  fontSize: '0.95rem',
   boxShadow: '0 4px 15px rgba(255, 0, 110, 0.3)',
-  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+  transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease',
   zIndex: 10,
   '&:hover': {
     transform: 'translateX(-50%) scale(1.05)',
-    boxShadow: '0 6px 20px rgba(58, 134, 255, 0.4)',
+    boxShadow: '0 6px 20px rgba(58, 134, 255, 0.45)',
   },
   '&:active': {
-    transform: 'translateX(-50%) scale(0.95)',
+    transform: 'translateX(-50%) scale(0.96)',
   }
 });
 
@@ -507,7 +537,12 @@ function buildFallbackResults(rawIdeas = []) {
 function playSound(volume) {
   if (volume <= 0) return;
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -561,27 +596,36 @@ const LargeLoader = styled('div', {
 });
 
 const IdeaCard = styled('div', {
-  background: 'rgba(255, 255, 255, 0.7)',
+  background: 'rgba(255, 255, 255, 0.75)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
   border: '1px solid $border',
   borderRadius: '$6',
   padding: '$4',
   position: 'relative',
   overflow: 'hidden',
-  boxShadow: '0 4px 15px rgba(31, 38, 135, 0.05)',
-  animation: `${slideUp} 0.5s ease backwards`,
+  boxShadow: '0 4px 18px rgba(31, 38, 135, 0.05)',
+  animation: `${slideUp} 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards`,
+  transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 14px 30px rgba(58, 134, 255, 0.12), 0 4px 12px rgba(255, 0, 110, 0.08)',
+    borderColor: 'rgba(58, 134, 255, 0.35)',
+  },
 });
 
 const IdeaContent = styled('div', {
-  fontSize: '$4', // slightly smaller since we have a title
+  fontSize: '$4',
   lineHeight: 1.6,
   marginBottom: '$4',
+  color: '$text',
 });
 
 const CopyButton = styled('button', {
   position: 'absolute',
   top: '$4',
   right: '$4',
-  background: 'rgba(255, 255, 255, 0.5)',
+  background: 'rgba(255, 255, 255, 0.65)',
   border: '1px solid $border',
   borderRadius: '$round',
   width: '36px',
@@ -591,12 +635,16 @@ const CopyButton = styled('button', {
   justifyContent: 'center',
   cursor: 'pointer',
   color: '$text',
-  transition: 'all 0.2s ease',
+  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
   '&:hover': {
     background: 'white',
-    transform: 'scale(1.1)',
+    transform: 'scale(1.12)',
     color: '$primary',
+    boxShadow: '0 4px 12px rgba(255, 0, 110, 0.2)',
   },
+  '&:active': {
+    transform: 'scale(0.95)',
+  }
 });
 
 const SliderContainer = styled('div', {
@@ -660,6 +708,10 @@ const IdeaMetrics = styled('div', {
   gap: '$3',
   paddingTop: '$3',
   borderTop: '1px solid $border',
+  '@media (max-width: 480px)': {
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '$2',
+  }
 });
 
 const Metric = styled('div', {
@@ -673,7 +725,8 @@ const MetricLabel = styled('span', {
   fontSize: '$1',
   color: '$textMuted',
   textTransform: 'uppercase',
-  letterSpacing: '1px',
+  letterSpacing: '0.8px',
+  fontWeight: 600,
 });
 
 const MetricValue = styled('span', {
@@ -692,7 +745,7 @@ const MetricValue = styled('span', {
 const ProgressBarBg = styled('div', {
   width: '100%',
   height: '6px',
-  background: 'rgba(0,0,0,0.1)',
+  background: 'rgba(0,0,0,0.08)',
   borderRadius: '$round',
   marginTop: '$1',
   overflow: 'hidden',
@@ -701,12 +754,12 @@ const ProgressBarBg = styled('div', {
 const ProgressBarFill = styled('div', {
   height: '100%',
   borderRadius: '$round',
-  transition: 'width 0.5s ease',
+  transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
   variants: {
     color: {
-      high: { background: '$success' },
-      medium: { background: '$warning' },
-      low: { background: '$error' }
+      high: { background: 'linear-gradient(90deg, #10b981, #059669)' },
+      medium: { background: 'linear-gradient(90deg, #f59e0b, #d97706)' },
+      low: { background: 'linear-gradient(90deg, #ef4444, #dc2626)' }
     }
   }
 });
@@ -717,6 +770,210 @@ const Reasoning = styled('div', {
   color: '$textMuted',
   fontStyle: 'italic',
   textAlign: 'center',
+});
+
+// --- Results Toolbar & Empty State Styles ---
+
+const ResultsHeader = styled('div', {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '$3',
+  marginBottom: '$4',
+  padding: '$3 $4',
+  background: 'rgba(255, 255, 255, 0.75)',
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  border: '1px solid $border',
+  borderRadius: '$5',
+  boxShadow: '0 4px 20px rgba(31, 38, 135, 0.05)',
+  animation: `${slideUp} 0.35s ease`,
+});
+
+const ResultsControls = styled('div', {
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '$2',
+});
+
+const ResultsCountBadge = styled('div', {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  fontSize: '0.85rem',
+  fontWeight: 700,
+  color: '$primary',
+  background: 'rgba(255, 0, 110, 0.08)',
+  border: '1px solid rgba(255, 0, 110, 0.2)',
+  padding: '0.35rem 0.8rem',
+  borderRadius: '$round',
+});
+
+const SearchInputWrapper = styled('div', {
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+});
+
+const SearchInput = styled('input', {
+  background: 'rgba(255, 255, 255, 0.85)',
+  border: '1px solid $border',
+  borderRadius: '$round',
+  padding: '0.4rem 1.8rem 0.4rem 2rem',
+  fontSize: '0.82rem',
+  color: '$text',
+  outline: 'none',
+  width: '160px',
+  transition: 'all 0.25s ease',
+  '&:focus': {
+    width: '210px',
+    borderColor: '$secondary',
+    boxShadow: '0 0 0 2px rgba(58, 134, 255, 0.2)',
+    background: '#ffffff',
+  },
+  '@media (max-width: 600px)': {
+    width: '130px',
+    '&:focus': {
+      width: '160px',
+    }
+  }
+});
+
+const SortSelect = styled('select', {
+  padding: '0.4rem 0.75rem',
+  borderRadius: '$round',
+  border: '1px solid $border',
+  background: 'rgba(255, 255, 255, 0.85)',
+  color: '$text',
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  outline: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  '&:focus': {
+    borderColor: '$secondary',
+  }
+});
+
+const ToolbarButton = styled('button', {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  padding: '0.4rem 0.85rem',
+  borderRadius: '$round',
+  border: '1px solid $border',
+  background: 'rgba(255, 255, 255, 0.85)',
+  color: '$text',
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    borderColor: '$primary',
+    color: '$primary',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 2px 8px rgba(255, 0, 110, 0.15)',
+  },
+  variants: {
+    variant: {
+      danger: {
+        '&:hover': {
+          borderColor: '$error',
+          color: '$error',
+          boxShadow: '0 2px 8px rgba(239, 68, 68, 0.2)',
+        }
+      },
+      primary: {
+        background: 'linear-gradient(135deg, $primary, $secondary)',
+        color: 'white',
+        borderColor: 'transparent',
+        '&:hover': {
+          color: 'white',
+          boxShadow: '0 4px 12px rgba(58, 134, 255, 0.35)',
+        }
+      }
+    }
+  }
+});
+
+const EmptyState = styled('div', {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textAlign: 'center',
+  padding: '4rem 2rem',
+  background: 'rgba(255, 255, 255, 0.55)',
+  backdropFilter: 'blur(16px)',
+  border: '1px dashed $border',
+  borderRadius: '$6',
+  marginTop: '$3',
+  marginBottom: '$5',
+  animation: `${slideUp} 0.4s ease`,
+});
+
+const EmptyIconGlow = styled('div', {
+  width: '64px',
+  height: '64px',
+  borderRadius: '$round',
+  background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.15), rgba(58, 134, 255, 0.15))',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '$primary',
+  marginBottom: '$3',
+  boxShadow: '0 8px 24px rgba(255, 0, 110, 0.15)',
+});
+
+const PromptChips = styled('div', {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '$2',
+  justifyContent: 'center',
+  marginTop: '$3',
+  maxWidth: '700px',
+});
+
+const PromptChip = styled('button', {
+  background: 'white',
+  border: '1px solid $border',
+  borderRadius: '$round',
+  padding: '0.5rem 1rem',
+  fontSize: '0.85rem',
+  color: '$textMuted',
+  cursor: 'pointer',
+  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  '&:hover': {
+    borderColor: '$primary',
+    color: '$primary',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(255, 0, 110, 0.15)',
+  }
+});
+
+const ToastContainer = styled('div', {
+  position: 'fixed',
+  bottom: '$5',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  zIndex: 10000,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '$2',
+  padding: '0.75rem 1.25rem',
+  background: 'rgba(26, 32, 44, 0.92)',
+  backdropFilter: 'blur(12px)',
+  color: 'white',
+  borderRadius: '$round',
+  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+  fontSize: '0.9rem',
+  fontWeight: 600,
+  animation: `${popIn} 0.25s cubic-bezier(0.16, 1, 0.3, 1)`,
 });
 
 // --- Settings Modal Styles ---
@@ -854,24 +1111,20 @@ const ToggleHeader = styled('div', {
   alignItems: 'center',
   cursor: 'pointer',
   userSelect: 'none',
-  paddingBottom: '$2', // extra padding space for when toggled
-  transition: 'transform 0.3s ease',
-  variants: {
-    open: {
-      true: {
-        transform: 'translateY(40%)',
-      },
-      false: {
-        transform: 'translateY(0)',
-      }
-    }
+  padding: '$1 0',
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '$primary',
+  },
+  '& svg': {
+    transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
   }
 });
 
 const ToggleBody = styled('div', {
   display: 'grid',
   gridTemplateRows: '0fr',
-  transition: 'grid-template-rows 0.35s ease, opacity 0.3s ease, margin-top 0.35s ease',
+  transition: 'grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin-top 0.35s ease',
   opacity: 0,
   pointerEvents: 'none',
   '& > div': {
@@ -892,29 +1145,85 @@ const ToggleBody = styled('div', {
 
 const ErrorMessage = styled('div', {
   marginTop: '$3',
-  padding: '$3',
+  marginBottom: '$3',
+  padding: '$3 $4',
   background: '$errorBg',
   border: '1px solid $error',
-  color: '#ff88a0',
+  color: '#ff4d6d',
   borderRadius: '$round',
   fontSize: '0.95rem',
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'space-between',
   gap: '$2',
+  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.12)',
+  animation: `${slideUp} 0.3s ease`,
 });
 
 export default function App() {
-  const [provider, setProvider] = useState('openai');
-  const [apiKey, setApiKey] = useState('');
-  const [baseURL, setBaseURL] = useState(PROVIDERS['openai'].defaultBase);
-  const [model, setModel] = useState(PROVIDERS['openai'].defaultModel);
+  const [provider, setProvider] = useState(() => {
+    try { return localStorage.getItem('creflux_provider') || 'openai'; } catch { return 'openai'; }
+  });
 
-  const [prompt, setPrompt] = useState('');
-  const [results, setResults] = useState([]);
+  const [apiKeys, setApiKeys] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('creflux_api_keys') || '{}'); } catch { return {}; }
+  });
+
+  const [providerConfigs, setProviderConfigs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('creflux_provider_configs') || '{}'); } catch { return {}; }
+  });
+
+  const [apiKey, setApiKey] = useState(() => {
+    try {
+      const keys = JSON.parse(localStorage.getItem('creflux_api_keys') || '{}');
+      const prov = localStorage.getItem('creflux_provider') || 'openai';
+      return keys[prov] || '';
+    } catch { return ''; }
+  });
+
+  const [baseURL, setBaseURL] = useState(() => {
+    try {
+      const configs = JSON.parse(localStorage.getItem('creflux_provider_configs') || '{}');
+      const prov = localStorage.getItem('creflux_provider') || 'openai';
+      return configs[prov]?.baseURL ?? PROVIDERS[prov]?.defaultBase ?? '';
+    } catch { return PROVIDERS.openai.defaultBase; }
+  });
+
+  const [model, setModel] = useState(() => {
+    try {
+      const configs = JSON.parse(localStorage.getItem('creflux_provider_configs') || '{}');
+      const prov = localStorage.getItem('creflux_provider') || 'openai';
+      return configs[prov]?.model ?? PROVIDERS[prov]?.defaultModel ?? '';
+    } catch { return PROVIDERS.openai.defaultModel; }
+  });
+
+  const [prompt, setPrompt] = useState(() => {
+    try { return localStorage.getItem('creflux_prompt_draft') || ''; } catch { return ''; }
+  });
+
+  const [results, setResults] = useState(() => {
+    try {
+      const saved = localStorage.getItem('creflux_saved_results');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
   const [copiedId, setCopiedId] = useState(null);
+  const [toast, setToast] = useState(null);
 
-  const [sliderIndex, setSliderIndex] = useState(4); // Default: Creativity (temp 2.0)
-  const [catalystMode, setCatalystMode] = useState('auto');
+  const [sliderIndex, setSliderIndex] = useState(() => {
+    try {
+      const saved = localStorage.getItem('creflux_slider_index');
+      return saved !== null ? parseInt(saved, 10) : 4;
+    } catch { return 4; }
+  });
+
+  const [catalystMode, setCatalystMode] = useState(() => {
+    try { return localStorage.getItem('creflux_catalyst_mode') || 'auto'; } catch { return 'auto'; }
+  });
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('default');
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
@@ -933,17 +1242,83 @@ export default function App() {
     try { return parseFloat(localStorage.getItem('creflux_sound_volume') ?? '0.5'); } catch { return 0.5; }
   });
 
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const showToast = (msg) => {
+    setToast(msg);
+  };
+
   const handleProviderChange = (e) => {
     const newProv = e.target.value;
     setProvider(newProv);
-    setApiKey('');
+    try { localStorage.setItem('creflux_provider', newProv); } catch (err) { console.warn(err); }
+
+    const restoredKey = apiKeys[newProv] || '';
+    setApiKey(restoredKey);
+
+    const customConf = providerConfigs[newProv];
     if (newProv !== 'custom') {
-      setBaseURL(PROVIDERS[newProv].defaultBase);
-      setModel(PROVIDERS[newProv].defaultModel);
+      const b = customConf?.baseURL ?? PROVIDERS[newProv].defaultBase;
+      const m = customConf?.model ?? PROVIDERS[newProv].defaultModel;
+      setBaseURL(b);
+      setModel(m);
     } else {
-      setBaseURL('');
-      setModel('');
+      setBaseURL(customConf?.baseURL ?? '');
+      setModel(customConf?.model ?? '');
     }
+  };
+
+  const handleApiKeyChange = (val) => {
+    setApiKey(val);
+    setApiKeys(prev => {
+      const next = { ...prev, [provider]: val };
+      try { localStorage.setItem('creflux_api_keys', JSON.stringify(next)); } catch (err) { console.warn(err); }
+      return next;
+    });
+  };
+
+  const handleBaseURLChange = (val) => {
+    setBaseURL(val);
+    setProviderConfigs(prev => {
+      const next = { ...prev, [provider]: { ...(prev[provider] || {}), baseURL: val } };
+      try { localStorage.setItem('creflux_provider_configs', JSON.stringify(next)); } catch (err) { console.warn(err); }
+      return next;
+    });
+  };
+
+  const handleModelChange = (val) => {
+    setModel(val);
+    setProviderConfigs(prev => {
+      const next = { ...prev, [provider]: { ...(prev[provider] || {}), model: val } };
+      try { localStorage.setItem('creflux_provider_configs', JSON.stringify(next)); } catch (err) { console.warn(err); }
+      return next;
+    });
+  };
+
+  const handlePromptChange = (val) => {
+    setPrompt(val);
+    try { localStorage.setItem('creflux_prompt_draft', val); } catch (err) { console.warn(err); }
+    if (error) setError(null);
+  };
+
+  const handleSliderChange = (val) => {
+    setSliderIndex(val);
+    try { localStorage.setItem('creflux_slider_index', String(val)); } catch (err) { console.warn(err); }
+  };
+
+  const handleCatalystModeChange = (val) => {
+    setCatalystMode(val);
+    try { localStorage.setItem('creflux_catalyst_mode', val); } catch (err) { console.warn(err); }
+  };
+
+  const handleClearResults = () => {
+    setResults([]);
+    try { localStorage.removeItem('creflux_saved_results'); } catch (err) { console.warn(err); }
+    showToast('🗑️ Cleared results');
   };
 
   const handleGenerate = async () => {
@@ -952,7 +1327,7 @@ export default function App() {
     if (!finalApiKey && requiresApiKey) {
       setError("Please enter your API key in the configuration panel.");
       setShowSettings(true);
-      setIsHeaderOpen(true); // Ensure master panel is visible
+      setIsHeaderOpen(true);
       return;
     }
     if (!finalApiKey) finalApiKey = 'custom-endpoint-key';
@@ -977,7 +1352,7 @@ export default function App() {
       const enhancedPrompt = await enhancePrompt(providerConfig, prompt, catalystMode);
 
       setGenerationStep("Spawning 15 ideas...");
-      const creativityLevel = sliderIndex * 0.5; // Maps 0-4 to 0.0-2.0
+      const creativityLevel = sliderIndex * 0.5;
       const rawIdeas = await generateIdeas(providerConfig, enhancedPrompt, creativityLevel);
 
       if (!rawIdeas || rawIdeas.length === 0) {
@@ -987,14 +1362,12 @@ export default function App() {
       setGenerationStep("Evaluating & expanding all 15...");
       const evaluatedIdeas = await evaluateIdeasBatch(providerConfig, prompt, rawIdeas);
       const safeResults = Array.isArray(evaluatedIdeas) ? evaluatedIdeas.filter(Boolean) : [];
-      setResults(safeResults.length > 0 ? safeResults : buildFallbackResults(rawIdeas));
+      const finalRes = safeResults.length > 0 ? safeResults : buildFallbackResults(rawIdeas);
+      setResults(finalRes);
+      try { localStorage.setItem('creflux_saved_results', JSON.stringify(finalRes)); } catch (err) { console.warn(err); }
 
-      // Play completion sound
       playSound(soundVolume);
-
-      // Successfully generated: collapse the entire master header naturally
       setIsHeaderOpen(false);
-      // Ensure internal panels are ready for next open
       setShowSettings(true);
       setShowGenerate(true);
 
@@ -1007,7 +1380,9 @@ export default function App() {
   };
 
   const handleRandomPrompt = () => {
-    setPrompt(getRandomPrompt());
+    const p = getRandomPrompt();
+    handlePromptChange(p);
+    showToast('🎲 Random prompt generated');
   };
 
   const getScoreColor = useCallback((score) => {
@@ -1016,8 +1391,28 @@ export default function App() {
     return 'low';
   }, []);
 
-
-
+  const filteredAndSortedResults = useMemo(() => {
+    let list = [...results];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(item =>
+        (item.title && item.title.toLowerCase().includes(q)) ||
+        (item.tag && item.tag.toLowerCase().includes(q)) ||
+        (item.idea && item.idea.toLowerCase().includes(q)) ||
+        (item.thoughtProcess && item.thoughtProcess.toLowerCase().includes(q))
+      );
+    }
+    if (sortBy === 'novelty') {
+      list.sort((a, b) => (b.evaluation?.novelty || 0) - (a.evaluation?.novelty || 0));
+    } else if (sortBy === 'feasibility') {
+      list.sort((a, b) => (b.evaluation?.feasibility || 0) - (a.evaluation?.feasibility || 0));
+    } else if (sortBy === 'syntax') {
+      list.sort((a, b) => (b.evaluation?.syntax || 0) - (a.evaluation?.syntax || 0));
+    } else if (sortBy === 'relevance') {
+      list.sort((a, b) => (b.evaluation?.relevance || 0) - (a.evaluation?.relevance || 0));
+    }
+    return list;
+  }, [results, searchQuery, sortBy]);
 
   const handleCopy = useCallback((item, index) => {
     const evaluation = item?.evaluation || {};
@@ -1039,8 +1434,33 @@ export default function App() {
       console.warn('Clipboard write failed:', e);
     }
     setCopiedId(index);
+    showToast(`📋 Copied "${item?.title || 'Idea'}"`);
     setTimeout(() => setCopiedId(null), 2000);
   }, [copyFormat]);
+
+  const handleCopyAll = useCallback(() => {
+    if (!filteredAndSortedResults || filteredAndSortedResults.length === 0) return;
+    const allText = filteredAndSortedResults.map((item) => {
+      const evaluation = item?.evaluation || {};
+      return copyFormat
+        .replace(/\{title\}/g, item?.title || '')
+        .replace(/\{tag\}/g, item?.tag || '')
+        .replace(/\{thoughtProcess\}/g, item?.thoughtProcess || '')
+        .replace(/\{idea\}/g, item?.idea || '')
+        .replace(/\{syntax\}/g, String(evaluation.syntax || 0))
+        .replace(/\{feasibility\}/g, String(evaluation.feasibility || 0))
+        .replace(/\{relevance\}/g, String(evaluation.relevance || 0))
+        .replace(/\{novelty\}/g, String(evaluation.novelty || 0))
+        .replace(/\{reasoning\}/g, evaluation.reasoning || '');
+    }).join('\n\n' + '—'.repeat(40) + '\n\n');
+
+    try {
+      navigator.clipboard.writeText(allText);
+      showToast(`✨ Copied all ${filteredAndSortedResults.length} ideas to clipboard!`);
+    } catch (e) {
+      console.warn('Clipboard write failed:', e);
+    }
+  }, [filteredAndSortedResults, copyFormat]);
 
   const handleCopyFormatChange = (val) => {
     setCopyFormat(val);
@@ -1062,8 +1482,17 @@ export default function App() {
 
           {error && (
             <ErrorMessage>
-              <AlertCircle size={20} />
-              {error}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertCircle size={20} />
+                <span>{error}</span>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', padding: '4px' }}
+                title="Dismiss error"
+              >
+                <X size={18} />
+              </button>
             </ErrorMessage>
           )}
 
@@ -1083,7 +1512,7 @@ export default function App() {
                   <GlassPanel open={showSettings}>
                     <ToggleHeader open={showSettings} onClick={() => setShowSettings(!showSettings)}>
                       <h2><Settings size={20} /> AI Settings</h2>
-                      {showSettings ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                      <ChevronDown size={22} style={{ transform: showSettings ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
                     </ToggleHeader>
 
                     <ToggleBody open={showSettings}>
@@ -1104,7 +1533,7 @@ export default function App() {
                               type="password"
                               placeholder={provider === 'custom' ? 'Optional for local endpoints' : 'Enter your API key'}
                               value={apiKey}
-                              onChange={(e) => setApiKey(e.target.value)}
+                              onChange={(e) => handleApiKeyChange(e.target.value)}
                             />
                           </FormGroup>
 
@@ -1114,7 +1543,7 @@ export default function App() {
                               type="text"
                               placeholder="e.g. gpt-4o"
                               value={model}
-                              onChange={(e) => setModel(e.target.value)}
+                              onChange={(e) => handleModelChange(e.target.value)}
                             />
                           </FormGroup>
                         </FormRow>
@@ -1125,7 +1554,7 @@ export default function App() {
                             type="url"
                             placeholder="https://api.openai.com/v1"
                             value={baseURL}
-                            onChange={(e) => setBaseURL(e.target.value)}
+                            onChange={(e) => handleBaseURLChange(e.target.value)}
                             disabled={provider !== 'custom'}
                           />
                         </FormGroup>
@@ -1142,7 +1571,7 @@ export default function App() {
                               max="4"
                               step="1"
                               value={sliderIndex}
-                              onChange={(e) => setSliderIndex(parseInt(e.target.value, 10))}
+                              onChange={(e) => handleSliderChange(parseInt(e.target.value, 10))}
                             />
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888098', fontSize: '0.75rem', marginTop: '4px' }}>
                               <span>Precise</span>
@@ -1157,7 +1586,7 @@ export default function App() {
                   <GlassPanel open={showGenerate}>
                     <ToggleHeader open={showGenerate} onClick={() => setShowGenerate(!showGenerate)}>
                       <h2><Sparkles size={20} /> Generate Ideas</h2>
-                      {showGenerate ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                      <ChevronDown size={22} style={{ transform: showGenerate ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
                     </ToggleHeader>
 
                     <ToggleBody open={showGenerate}>
@@ -1172,7 +1601,7 @@ export default function App() {
                                 key={m.id}
                                 type="button"
                                 active={catalystMode === m.id}
-                                onClick={() => setCatalystMode(m.id)}
+                                onClick={() => handleCatalystModeChange(m.id)}
                                 title={m.desc}
                               >
                                 {m.label}
@@ -1185,7 +1614,7 @@ export default function App() {
                           <Textarea
                             placeholder="Describe the ideas you imagine in detail... e.g., 'Generate 10 innovative startup ideas for the sustainable fashion industry targeting Gen Z'"
                             value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
+                            onChange={(e) => handlePromptChange(e.target.value)}
                           />
                           <RandomPromptBtn onClick={handleRandomPrompt} title="Use random prompt across 5 creative archetypes">
                             <Dices size={18} />
@@ -1262,97 +1691,187 @@ export default function App() {
             )}
 
             {!isGenerating && results.length > 0 && (
-              <IdeasList>
-                {results.map((item, index) => (
-                  <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.1}s` }}>
-                    <div style={{ position: 'absolute', top: '$4', right: '$4', display: 'flex', gap: '$2' }}>
-                      <CopyButton onClick={() => handleCopy(item, index)} title="Copy">
-                        {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
-                      </CopyButton>
-                    </div>
-                    {item.tag && <TagBadge>🏷️ {item.tag}</TagBadge>}
-                    {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
-                    {String(item.thoughtProcess || '').trim() && (
-                      <ThoughtChain>
-                        {String(item.thoughtProcess).split('→').map((node, i, arr) => (
-                          <React.Fragment key={i}>
-                            <span style={{ padding: '2px 6px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
-                              {node.trim()}
-                            </span>
-                            {i < arr.length - 1 && <span style={{ color: 'var(--colors-secondary)' }}>→</span>}
-                          </React.Fragment>
-                        ))}
-                      </ThoughtChain>
-                    )}
-                    <IdeaContent>
-                      {(item.idea).split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
-                    </IdeaContent>
-                    <IdeaMetrics>
-                      <Metric>
-                        <MetricLabel>Syntax (SYN)</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation?.syntax)}>
-                          {item.evaluation?.syntax || 0}
-                        </MetricValue>
-                        <ProgressBarBg>
-                          <ProgressBarFill
-                            css={{ width: `${item.evaluation?.syntax || 0}%` }}
-                            color={getScoreColor(item.evaluation?.syntax)}
-                          />
-                        </ProgressBarBg>
-                      </Metric>
-                      <Metric>
-                        <MetricLabel>Feasibility (FEA)</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation?.feasibility)}>
-                          {item.evaluation?.feasibility || 0}
-                        </MetricValue>
-                        <ProgressBarBg>
-                          <ProgressBarFill
-                            css={{ width: `${item.evaluation?.feasibility || 0}%` }}
-                            color={getScoreColor(item.evaluation?.feasibility)}
-                          />
-                        </ProgressBarBg>
-                      </Metric>
-                      <Metric>
-                        <MetricLabel>Relevance (REL)</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation?.relevance)}>
-                          {item.evaluation?.relevance || 0}
-                        </MetricValue>
-                        <ProgressBarBg>
-                          <ProgressBarFill
-                            css={{ width: `${item.evaluation?.relevance || 0}%` }}
-                            color={getScoreColor(item.evaluation?.relevance)}
-                          />
-                        </ProgressBarBg>
-                      </Metric>
-                      <Metric>
-                        <MetricLabel>Novelty (NOV)</MetricLabel>
-                        <MetricValue color={getScoreColor(item.evaluation?.novelty)}>
-                          {item.evaluation?.novelty || 0}
-                        </MetricValue>
+              <>
+                <ResultsHeader>
+                  <ResultsCountBadge>
+                    <Sparkles size={16} />
+                    <span>{filteredAndSortedResults.length} of {results.length} Ideas</span>
+                  </ResultsCountBadge>
 
-                        <ProgressBarBg>
-                          <ProgressBarFill
-                            css={{ width: `${item.evaluation?.novelty || 0}%` }}
-                            color={getScoreColor(item.evaluation?.novelty)}
-                          />
-                        </ProgressBarBg>
-                      </Metric>
-                    </IdeaMetrics>
-                    {item.evaluation?.reasoning && (
-                      <Reasoning>
-                        <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--colors-text)' }}>
-                          AI Analysis (Reasoning):
-                        </strong>
-                        "{item.evaluation?.reasoning}"
-                      </Reasoning>
-                    )}
-                  </IdeaCard>
-                ))}
-              </IdeasList>
+                  <ResultsControls>
+                    <SearchInputWrapper>
+                      <Search size={14} style={{ position: 'absolute', left: '10px', color: 'var(--colors-textMuted)', pointerEvents: 'none' }} />
+                      <SearchInput
+                        placeholder="Filter ideas..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--colors-textMuted)', display: 'flex' }}
+                          title="Clear filter"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </SearchInputWrapper>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ArrowUpDown size={14} color="var(--colors-textMuted)" />
+                      <SortSelect value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                        <option value="default">Default Order</option>
+                        <option value="novelty">Highest Novelty (NOV)</option>
+                        <option value="feasibility">Highest Feasibility (FEA)</option>
+                        <option value="syntax">Highest Syntax (SYN)</option>
+                        <option value="relevance">Highest Relevance (REL)</option>
+                      </SortSelect>
+                    </div>
+
+                    <ToolbarButton onClick={handleCopyAll} title="Copy all ideas in selected format">
+                      <CheckCheck size={16} color="var(--colors-primary)" /> Copy All
+                    </ToolbarButton>
+
+                    <ToolbarButton variant="danger" onClick={handleClearResults} title="Clear all generated ideas">
+                      <Trash2 size={16} />
+                    </ToolbarButton>
+                  </ResultsControls>
+                </ResultsHeader>
+
+                {filteredAndSortedResults.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'rgba(255, 255, 255, 0.6)', borderRadius: '24px', border: '1px solid var(--colors-border)' }}>
+                    <p style={{ color: 'var(--colors-textMuted)', marginBottom: '1rem' }}>
+                      No ideas matched "<strong>{searchQuery}</strong>"
+                    </p>
+                    <ToolbarButton onClick={() => setSearchQuery('')}>
+                      Reset Filter
+                    </ToolbarButton>
+                  </div>
+                ) : (
+                  <IdeasList>
+                    {filteredAndSortedResults.map((item, index) => (
+                      <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.06}s` }}>
+                        <div style={{ position: 'absolute', top: '$4', right: '$4', display: 'flex', gap: '$2' }}>
+                          <CopyButton onClick={() => handleCopy(item, index)} title="Copy">
+                            {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
+                          </CopyButton>
+                        </div>
+                        {item.tag && <TagBadge>🏷️ {item.tag}</TagBadge>}
+                        {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
+                        {String(item.thoughtProcess || '').trim() && (
+                          <ThoughtChain>
+                            {String(item.thoughtProcess).split('→').map((node, i, arr) => (
+                              <React.Fragment key={i}>
+                                <span style={{ padding: '2px 6px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
+                                  {node.trim()}
+                                </span>
+                                {i < arr.length - 1 && <span style={{ color: 'var(--colors-secondary)' }}>→</span>}
+                              </React.Fragment>
+                            ))}
+                          </ThoughtChain>
+                        )}
+                        <IdeaContent>
+                          {(item.idea).split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
+                        </IdeaContent>
+                        <IdeaMetrics>
+                          <Metric>
+                            <MetricLabel>Syntax (SYN)</MetricLabel>
+                            <MetricValue color={getScoreColor(item.evaluation?.syntax)}>
+                              {item.evaluation?.syntax || 0}
+                            </MetricValue>
+                            <ProgressBarBg>
+                              <ProgressBarFill
+                                css={{ width: `${item.evaluation?.syntax || 0}%` }}
+                                color={getScoreColor(item.evaluation?.syntax)}
+                              />
+                            </ProgressBarBg>
+                          </Metric>
+                          <Metric>
+                            <MetricLabel>Feasibility (FEA)</MetricLabel>
+                            <MetricValue color={getScoreColor(item.evaluation?.feasibility)}>
+                              {item.evaluation?.feasibility || 0}
+                            </MetricValue>
+                            <ProgressBarBg>
+                              <ProgressBarFill
+                                css={{ width: `${item.evaluation?.feasibility || 0}%` }}
+                                color={getScoreColor(item.evaluation?.feasibility)}
+                              />
+                            </ProgressBarBg>
+                          </Metric>
+                          <Metric>
+                            <MetricLabel>Relevance (REL)</MetricLabel>
+                            <MetricValue color={getScoreColor(item.evaluation?.relevance)}>
+                              {item.evaluation?.relevance || 0}
+                            </MetricValue>
+                            <ProgressBarBg>
+                              <ProgressBarFill
+                                css={{ width: `${item.evaluation?.relevance || 0}%` }}
+                                color={getScoreColor(item.evaluation?.relevance)}
+                              />
+                            </ProgressBarBg>
+                          </Metric>
+                          <Metric>
+                            <MetricLabel>Novelty (NOV)</MetricLabel>
+                            <MetricValue color={getScoreColor(item.evaluation?.novelty)}>
+                              {item.evaluation?.novelty || 0}
+                            </MetricValue>
+                            <ProgressBarBg>
+                              <ProgressBarFill
+                                css={{ width: `${item.evaluation?.novelty || 0}%` }}
+                                color={getScoreColor(item.evaluation?.novelty)}
+                              />
+                            </ProgressBarBg>
+                          </Metric>
+                        </IdeaMetrics>
+                        {item.evaluation?.reasoning && (
+                          <Reasoning>
+                            <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--colors-text)' }}>
+                              AI Analysis (Reasoning):
+                            </strong>
+                            "{item.evaluation?.reasoning}"
+                          </Reasoning>
+                        )}
+                      </IdeaCard>
+                    ))}
+                  </IdeasList>
+                )}
+              </>
+            )}
+
+            {!isGenerating && results.length === 0 && (
+              <EmptyState>
+                <EmptyIconGlow>
+                  <Sparkles size={32} />
+                </EmptyIconGlow>
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(135deg, #FF006E, #3A86FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Ready to Forge Groundbreaking Ideas
+                </h3>
+                <p style={{ color: 'var(--colors-textMuted)', maxWidth: '580px', lineHeight: 1.6, fontSize: '0.95rem' }}>
+                  CreFlux combines cross-domain <strong>Bisociation</strong>, <strong>PO Provocation</strong>, and <strong>SMILE Naming</strong> to synthesize 15 distinct, non-cliché product concepts with multi-angle AI scoring.
+                </p>
+                <PromptChips>
+                  <PromptChip onClick={() => { handlePromptChange("Apply Bisociation: Collide Formula 1 Pitstop mechanics with Emergency Room Triage for zero-latency patient care."); handleCatalystModeChange('bisociation'); }}>
+                    <Zap size={14} color="#FF006E" /> F1 Pitstop ⚡ ER Triage
+                  </PromptChip>
+                  <PromptChip onClick={() => { handlePromptChange("PO: What if smartphones had zero screens and communicated purely through micro-haptic resonance?"); handleCatalystModeChange('provocation'); }}>
+                    <Zap size={14} color="#3A86FF" /> PO: Zero-Screen Haptic Phone
+                  </PromptChip>
+                  <PromptChip onClick={() => { handlePromptChange("SMILE Naming Lab: Create 15 high-market-value sleep technology concepts inspired by Deep-Sea Bioluminescence."); handleCatalystModeChange('naming'); }}>
+                    <Zap size={14} color="#8338EC" /> Deep-Sea Bioluminescence ⚡ Sleep Tech
+                  </PromptChip>
+                </PromptChips>
+              </EmptyState>
             )}
           </main>
         </AppContainer>
       </RootContainer>
+
+      {toast && (
+        <ToastContainer>
+          <Sparkles size={16} color="#4ade80" />
+          <span>{toast}</span>
+        </ToastContainer>
+      )}
 
       {
         showCopySettings && (
