@@ -16,7 +16,6 @@ import {
   ArrowUpDown,
   Trash2,
   CheckCheck,
-  Zap,
 } from 'lucide-react';
 import { styled, globalStyles, keyframes } from './stitches.config';
 import { getRandomPrompt } from './lib/prompts';
@@ -895,64 +894,6 @@ const ToolbarButton = styled('button', {
         }
       }
     }
-  }
-});
-
-const EmptyState = styled('div', {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textAlign: 'center',
-  padding: '4rem 2rem',
-  background: 'rgba(255, 255, 255, 0.55)',
-  backdropFilter: 'blur(16px)',
-  border: '1px dashed $border',
-  borderRadius: '$6',
-  marginTop: '$3',
-  marginBottom: '$5',
-  animation: `${slideUp} 0.4s ease`,
-});
-
-const EmptyIconGlow = styled('div', {
-  width: '64px',
-  height: '64px',
-  borderRadius: '$round',
-  background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.15), rgba(58, 134, 255, 0.15))',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: '$primary',
-  marginBottom: '$3',
-  boxShadow: '0 8px 24px rgba(255, 0, 110, 0.15)',
-});
-
-const PromptChips = styled('div', {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '$2',
-  justifyContent: 'center',
-  marginTop: '$3',
-  maxWidth: '700px',
-});
-
-const PromptChip = styled('button', {
-  background: 'white',
-  border: '1px solid $border',
-  borderRadius: '$round',
-  padding: '0.5rem 1rem',
-  fontSize: '0.85rem',
-  color: '$textMuted',
-  cursor: 'pointer',
-  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  '&:hover': {
-    borderColor: '$primary',
-    color: '$primary',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 12px rgba(255, 0, 110, 0.15)',
   }
 });
 
@@ -1836,31 +1777,6 @@ export default function App() {
                   </IdeasList>
                 )}
               </>
-            )}
-
-            {!isGenerating && results.length === 0 && (
-              <EmptyState>
-                <EmptyIconGlow>
-                  <Sparkles size={32} />
-                </EmptyIconGlow>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(135deg, #FF006E, #3A86FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                  Ready to Forge Groundbreaking Ideas
-                </h3>
-                <p style={{ color: 'var(--colors-textMuted)', maxWidth: '580px', lineHeight: 1.6, fontSize: '0.95rem' }}>
-                  CreFlux combines cross-domain <strong>Bisociation</strong>, <strong>PO Provocation</strong>, and <strong>SMILE Naming</strong> to synthesize 15 distinct, non-cliché product concepts with multi-angle AI scoring.
-                </p>
-                <PromptChips>
-                  <PromptChip onClick={() => { handlePromptChange("Apply Bisociation: Collide Formula 1 Pitstop mechanics with Emergency Room Triage for zero-latency patient care."); handleCatalystModeChange('bisociation'); }}>
-                    <Zap size={14} color="#FF006E" /> F1 Pitstop ⚡ ER Triage
-                  </PromptChip>
-                  <PromptChip onClick={() => { handlePromptChange("PO: What if smartphones had zero screens and communicated purely through micro-haptic resonance?"); handleCatalystModeChange('provocation'); }}>
-                    <Zap size={14} color="#3A86FF" /> PO: Zero-Screen Haptic Phone
-                  </PromptChip>
-                  <PromptChip onClick={() => { handlePromptChange("SMILE Naming Lab: Create 15 high-market-value sleep technology concepts inspired by Deep-Sea Bioluminescence."); handleCatalystModeChange('naming'); }}>
-                    <Zap size={14} color="#8338EC" /> Deep-Sea Bioluminescence ⚡ Sleep Tech
-                  </PromptChip>
-                </PromptChips>
-              </EmptyState>
             )}
           </main>
         </AppContainer>
