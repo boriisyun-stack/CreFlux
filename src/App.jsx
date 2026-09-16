@@ -571,11 +571,20 @@ const IdeaContent = styled('div', {
   color: '$text',
 });
 
-const CopyButton = styled('button', {
+const CardActions = styled('div', {
   position: 'absolute',
   top: '$4',
   right: '$4',
-  background: 'rgba(255, 255, 255, 0.65)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  zIndex: 3,
+});
+
+const CardActionButton = styled('button', {
+  background: 'rgba(255, 255, 255, 0.75)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
   border: '1px solid $border',
   borderRadius: '$round',
   width: '36px',
@@ -588,7 +597,7 @@ const CopyButton = styled('button', {
   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
   '&:hover': {
     background: 'white',
-    transform: 'scale(1.12)',
+    transform: 'scale(1.1)',
     color: '$primary',
     boxShadow: '0 4px 12px rgba(255, 0, 110, 0.2)',
   },
@@ -596,6 +605,8 @@ const CopyButton = styled('button', {
     transform: 'scale(0.95)',
   }
 });
+
+const CopyButton = CardActionButton;
 
 const SliderContainer = styled('div', {
   display: 'flex',
@@ -1297,6 +1308,12 @@ export default function App() {
     return list;
   }, [results, searchQuery, sortBy]);
 
+  const handleSearch = useCallback((item) => {
+    const term = `${item?.title || ''} ${item?.tag ? String(item.tag).replace(/[•·]/g, ' ') : ''}`.trim();
+    const url = `https://www.google.com/search?q=${encodeURIComponent(term)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }, []);
+
   const handleCopy = useCallback((item, index) => {
     const evaluation = item?.evaluation || {};
     const copyText = copyFormat
@@ -1615,23 +1632,38 @@ export default function App() {
                   <IdeasList>
                     {filteredAndSortedResults.map((item, index) => (
                       <IdeaCard key={`${item.title}-${index}`} style={{ animationDelay: `${index * 0.06}s` }}>
-                        <div style={{ position: 'absolute', top: '$4', right: '$4', display: 'flex', gap: '$2' }}>
-                          <CopyButton onClick={() => handleCopy(item, index)} title="Copy">
+                        <CardActions>
+                          <CardActionButton
+                            onClick={() => handleSearch(item)}
+                            title="Search Google / Prior Art Check"
+                            aria-label="Search Prior Art"
+                          >
+                            <Search size={16} />
+                          </CardActionButton>
+                          <CardActionButton
+                            onClick={() => handleCopy(item, index)}
+                            title="Copy idea"
+                            aria-label="Copy idea"
+                          >
                             {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
-                          </CopyButton>
-                        </div>
+                          </CardActionButton>
+                        </CardActions>
                         {item.tag && <TagBadge>🏷️ {item.tag}</TagBadge>}
                         {item.title && <IdeaTitle>{item.title}</IdeaTitle>}
                         {String(item.thoughtProcess || '').trim() && (
                           <ThoughtChain>
-                            {String(item.thoughtProcess).split('→').map((node, i, arr) => (
-                              <React.Fragment key={i}>
-                                <span style={{ padding: '2px 6px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
-                                  {node.trim()}
-                                </span>
-                                {i < arr.length - 1 && <span style={{ color: 'var(--colors-secondary)' }}>→</span>}
-                              </React.Fragment>
-                            ))}
+                            {String(item.thoughtProcess)
+                              .split('→')
+                              .map((node) => node.trim())
+                              .filter(Boolean)
+                              .map((node, i, arr) => (
+                                <React.Fragment key={i}>
+                                  <span style={{ padding: '2px 6px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
+                                    {node}
+                                  </span>
+                                  {i < arr.length - 1 && <span style={{ color: 'var(--colors-secondary)' }}>→</span>}
+                                </React.Fragment>
+                              ))}
                           </ThoughtChain>
                         )}
                         <IdeaContent>
@@ -1689,8 +1721,8 @@ export default function App() {
                         </IdeaMetrics>
                         {item.evaluation?.reasoning && (
                           <Reasoning>
-                            <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--colors-text)' }}>
-                              AI Analysis (Reasoning):
+                            <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: 'var(--colors-text)' }}>
+                              <Sparkles size={14} color="var(--colors-secondary)" /> Strategic Novelty & Mechanism Audit:
                             </strong>
                             "{item.evaluation?.reasoning}"
                           </Reasoning>

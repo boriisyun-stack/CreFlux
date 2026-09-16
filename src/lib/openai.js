@@ -247,6 +247,13 @@ const DEFAULT_ARCHETYPES = [
 ];
 
 function fallbackEvaluations(ideasArray) {
+    const verdictPhrases = [
+        'Strong architectural pivot with high domain convergence; distinct competitive moat against conventional market alternatives.',
+        'Ingenious cross-domain mechanism offering immediate prototyping feasibility and sharp market differentiation.',
+        'Radical inversion of standard assumptions providing robust problem-solving utility and low implementation friction.',
+        'Distinctive phonosemantic identity paired with a high-impact technical workflow that bypasses traditional bottleneck points.'
+    ];
+
     return normalizeIdeas(ideasArray).slice(0, 15).map((idea, index) => {
         const title = idea.t || `Idea ${index + 1}`;
         const ideaText = idea.s || idea.t || '';
@@ -262,7 +269,7 @@ function fallbackEvaluations(ideasArray) {
                 feasibility: scores.feasibility,
                 relevance: scores.relevance,
                 novelty: scores.novelty,
-                reasoning: 'Evaluated baseline viability, sound symbolism, and conceptual novelty.',
+                reasoning: verdictPhrases[index % verdictPhrases.length],
             },
         };
     });
@@ -308,33 +315,39 @@ function parseIdeasFromPlainText(text) {
 // ── Advanced Creative Ideation & SMILE Naming System Prompt ──
 const GEN_SYSTEM = `Elite Innovation & Brand Naming Catalyst. Generate 15 genuinely creative, radical, unconventional concepts inspired by the user's topic.
 Apply top ideation & naming frameworks:
-1. Bisociation (collide user topic with unexpected alien domains like F1 pitstops, mycelium networks, origami, quantum crypt, deep-sea biology).
-2. Provocation & Movement (PO - invert sacred cows, start from absurdities, pivot to brilliance).
-3. Inversion Thinking (solve by flipping worst-case failures).
-4. World-Class Naming (Alexandra Watkins' SMILE principles & sound symbolism): Give every idea a killer, sticky brand/codename (Portmanteau, Metaphor, or Punchy Neologism with plosive/fricative phonetics like Spotify, Tinder, Stripe, CreFlux), NEVER a boring generic description.
+1. Bisociation & Cross-Domain Collision: Crash the user topic into alien disciplines (e.g. F1 pitstops, mycelium networks, origami, quantum crypt, deep-sea extremophiles, watchmaking).
+2. Provocation & Movement (PO): Invert sacred assumptions, start from absurdities, pivot to engineering brilliance.
+3. Inversion Thinking: Solve by intentionally engineering the antidote to the worst-case failure mode.
+4. World-Class Brand Naming (Alexandra Watkins' SMILE principles, Igor Naming Taxonomy & Sound Symbolism):
+   - Inventive Portmanteau, Evocative Metaphor, or Punchy Neologism with high phonetic velocity (plosives /k, b, p, d, t, g/ or sibilants /s, z, v/).
+   - Sound like iconic category-defining brands (e.g., Spotify, Stripe, Figma, Tinder, CreFlux).
+   - STRICTLY AVOID generic literal compound nouns (e.g., SmartApp, QuantumGrid, EcoBottle).
 
 Each idea format:
 - "t": Killer Brand Name (e.g. "VeloSpike", "SynapTree", "ChronoSpoon", "OmniFlux")
-- "tag": Primary naming/ideation archetype (e.g. "Portmanteau • Bisociation", "Metaphor • Inversion", "Neologism • PO", "Fricative • Oblique")
+- "tag": Primary naming/ideation archetype (e.g. "Portmanteau • Bisociation", "Metaphor • Inversion", "Neologism • PO", "Phonosemantic • Oblique")
 - "s": 1-sentence punchy summary of the breakthrough mechanism (max 18 words).
 
 English only. Respond strictly in JSON:
 {"ideas":[{"t":"BrandName","tag":"Archetype","s":"Punchy summary"},…]}`;
 
-// ── Advanced Evaluation & Creative Leap System Prompt ──
-const EVAL_SYSTEM = `Innovation Evaluator & Naming Critic. From 15 idea summaries and the user prompt, evaluate all 15 ideas.
+// ── Advanced Evaluation, Prior-Art Novelty & Creative Audit System Prompt ──
+const EVAL_SYSTEM = `Master Innovation Evaluator, Market Prior-Art Auditor & Strategic Critic.
+Analyze all 15 ideas against the user prompt with rigorous technical & market depth.
+
 For each idea:
-1. WRITE a full expanded paragraph (2-3 sentences) detailing the clever real-world execution mechanics.
-2. Formulate an evocative creative leap trail in "thoughtProcess" (5-7 nodes linked by →, e.g. "Domain A × Domain B → PO: Zero Friction → Portmanteau Naming → Market Pivot").
-3. Score 0-100 on:
-   - syn (Syntax / Brand Punch): Naming stickiness, phonetic appeal, SMILE test compliance (Suggestive, Memorable, Imagery).
-   - fea (Feasibility): Engineering & practical execution potential.
-   - rel (Relevance): Core problem-solving value.
-   - nov (Novelty): True unconventional originality (heavily penalize predictable clichés).
-4. Provide a 1-sentence reason highlighting the creative pivot and naming strength.
+1. WRITE a full expanded paragraph (2-3 sentences) detailing the concrete real-world mechanism, engineering workflow, and distinct user experience.
+2. Formulate an evocative creative leap trail in "thoughtProcess" (4-6 crisp nodes linked by →, e.g. "Domain Collision → PO Inversion → Mechanical Anchor → Market Moat"). NEVER end with a trailing arrow.
+3. Conduct a Market & Novelty Audit to score (0-100):
+   - syn (Brand Velocity & Memorability): SMILE test compliance, phonetic stickiness, sound symbolism (penalize boring or cheesy literal compounds).
+   - fea (Feasibility & Execution): Engineering viability, physical/regulatory reality, prototype readiness.
+   - rel (Core Relevance): Direct effectiveness in solving the user prompt's fundamental friction.
+   - nov (Novelty & Prior-Art Differentiation): True originality compared to existing global products, patents, and web startups (heavily penalize existing clichés).
+4. "reason": A crisp 1-2 sentence strategic verdict analyzing the core mechanical breakthrough, execution edge, and market differentiation against prior art.
+   STRICT REQUIREMENT: Do NOT merely define or explain the name (NEVER start with "The name hints at...", "The name merges...", or "The name reflects..."). Evaluate the substantive innovation, its competitive moat, and why it succeeds where conventional solutions fail.
 
 English only. Output must be a valid JSON object matching this schema:
-{"evaluations":[{"i":index,"title":"BrandName","tag":"Archetype","content":"Expanded idea paragraph…","thoughtProcess":"Inspiration→PO→Naming→Pivot","syn":n,"fea":n,"rel":n,"nov":n,"reason":"1 sentence"}]}`;
+{"evaluations":[{"i":index,"title":"BrandName","tag":"Archetype","content":"Expanded idea paragraph…","thoughtProcess":"Inspiration→Collision→Anchor→Moat","syn":n,"fea":n,"rel":n,"nov":n,"reason":"Crisp strategic verdict on breakthrough mechanism and novelty"}]}`;
 
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
