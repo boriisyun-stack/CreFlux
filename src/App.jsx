@@ -65,7 +65,7 @@ const RootContainer = styled('div', {
 
 const AppContainer = styled('div', {
   width: '100%',
-  maxWidth: '1200px',
+  maxWidth: '1440px',
   display: 'flex',
   flexDirection: 'column',
   padding: '0 $5 $5 $5',
@@ -82,7 +82,7 @@ const StickyHeader = styled('div', {
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
   width: '100%',
-  maxWidth: '1200px',
+  maxWidth: '1440px',
   margin: '0 auto $5 auto',
   padding: '$5',
   borderRadius: '$6',
