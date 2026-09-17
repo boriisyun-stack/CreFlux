@@ -239,19 +239,19 @@ function generateHeuristicScores(title, summary, index) {
 }
 
 const DEFAULT_ARCHETYPES = [
-    'Portmanteau • Bisociation',
-    'Metaphor • Inversion',
-    'Neologism • PO Provocation',
-    'Sound Symbolism • Mashup',
-    'Oblique Shift • Synthesis'
+    '역발상 • 유머',
+    '심리적 반전',
+    '호기심 유발',
+    '이종 결합 • 은유',
+    '파격적 위트'
 ];
 
 function fallbackEvaluations(ideasArray) {
     const verdictPhrases = [
-        'Strong architectural pivot with high domain convergence; distinct competitive moat against conventional market alternatives.',
-        'Ingenious cross-domain mechanism offering immediate prototyping feasibility and sharp market differentiation.',
-        'Radical inversion of standard assumptions providing robust problem-solving utility and low implementation friction.',
-        'Distinctive phonosemantic identity paired with a high-impact technical workflow that bypasses traditional bottleneck points.'
+        '기존의 상투적인 방식을 깨뜨리는 역발상과 높은 실전 적용성을 갖춘 참신한 접근입니다.',
+        '청자의 호기심과 반응을 즉각적으로 이끌어내는 심리적 매력과 독창적인 차별성이 돋보입니다.',
+        '직관적이면서도 군더더기 없는 전개로 상황에 즉시 활용하기 적합한 아이디어입니다.',
+        '클리셰를 비틀어 대화의 주도권과 강렬한 인상을 남기는 뛰어난 표현력을 지니고 있습니다.'
     ];
 
     return normalizeIdeas(ideasArray).slice(0, 15).map((idea, index) => {
@@ -263,7 +263,7 @@ function fallbackEvaluations(ideasArray) {
             title,
             tag,
             idea: ideaText,
-            thoughtProcess: `${(title.split(/[\s-]/)[0] || 'Concept')}→DomainCross→SMILE_Naming→MarketPivot`,
+            thoughtProcess: `${(title.split(/[\s-]/)[0] || '발상')}→고정관념탈피→심리적접근→핵심실행`,
             evaluation: {
                 syntax: scores.syntax,
                 feasibility: scores.feasibility,
@@ -312,42 +312,60 @@ function parseIdeasFromPlainText(text) {
     return ideas;
 }
 
-// ── Advanced Creative Ideation & SMILE Naming System Prompt ──
-const GEN_SYSTEM = `Elite Innovation & Brand Naming Catalyst. Generate 15 genuinely creative, radical, unconventional concepts inspired by the user's topic.
-Apply top ideation & naming frameworks:
-1. Bisociation & Cross-Domain Collision: Crash the user topic into alien disciplines (e.g. F1 pitstops, mycelium networks, origami, quantum crypt, deep-sea extremophiles, watchmaking).
-2. Provocation & Movement (PO): Invert sacred assumptions, start from absurdities, pivot to engineering brilliance.
-3. Inversion Thinking: Solve by intentionally engineering the antidote to the worst-case failure mode.
-4. World-Class Brand Naming (Alexandra Watkins' SMILE principles, Igor Naming Taxonomy & Sound Symbolism):
-   - Inventive Portmanteau, Evocative Metaphor, or Punchy Neologism with high phonetic velocity (plosives /k, b, p, d, t, g/ or sibilants /s, z, v/).
-   - Sound like iconic category-defining brands (e.g., Spotify, Stripe, Figma, Tinder, CreFlux).
-   - STRICTLY AVOID generic literal compound nouns (e.g., SmartApp, QuantumGrid, EcoBottle).
+// ── Universal Creative Catalyst & Ideation System Prompt ──
+const GEN_SYSTEM = `Master Creative Strategist & Innovation Catalyst.
+Your mission is to deeply understand the user's prompt intent and generate 15 genuinely creative, fresh, unconventional ideas that directly fulfill what they are seeking.
 
-Each idea format:
-- "t": Killer Brand Name (e.g. "VeloSpike", "SynapTree", "ChronoSpoon", "OmniFlux")
-- "tag": Primary naming/ideation archetype (e.g. "Portmanteau • Bisociation", "Metaphor • Inversion", "Neologism • PO", "Phonosemantic • Oblique")
-- "s": 1-sentence punchy summary of the breakthrough mechanism (max 18 words).
+1. CRITICAL: INTENT & DOMAIN SENSITIVITY
+Accurately identify what the user is asking for:
+- If the user asks for REPLIES / ANSWERS / LINES / COMEBACKS (e.g., "Hi의 대답", "카톡 답장", "대화 멘트", "광고 카피"):
+  → Generate 15 brilliant, witty, unexpected, psychological, or situational answers/responses across diverse tones (humorous, reverse-psychology, intriguing, witty, bold, charming, deadpan).
+  → "t": The memorable catchphrase / hook / tactic name.
+  → "s": The exact reply line and its clever conversational/psychological dynamic.
+- If the user asks for PRODUCTS / STARTUPS / INVENTIONS / BRANDS:
+  → Generate 15 radical product/service breakthroughs with sticky, unforgettable brand names (SMILE principles, evocative metaphors, neologisms) and innovative mechanism designs.
+  → "t": Killer brand/codename.
+  → "s": 1-sentence breakthrough mechanism and value proposition.
+- If the user asks for METHODS / STRATEGIES / CREATIVE SOLUTIONS:
+  → Generate 15 out-of-the-box, unconventional tactics that break conventional clichés.
 
-English only. Respond strictly in JSON:
-{"ideas":[{"t":"BrandName","tag":"Archetype","s":"Punchy summary"},…]}`;
+2. CREATIVE FRAMEWORKS TO APPLY:
+- Inversion Thinking: Flip the default, predictable response 180 degrees.
+- Bisociation: Connect with surprising, witty analogies that genuinely fit the context.
+- Provocation (PO): Break sacred rules of the domain to reveal hidden brilliance.
+- High-Impact Delivery: Avoid boring, generic, common-sense clichés.
 
-// ── Advanced Evaluation, Prior-Art Novelty & Creative Audit System Prompt ──
-const EVAL_SYSTEM = `Master Innovation Evaluator, Market Prior-Art Auditor & Strategic Critic.
-Analyze all 15 ideas against the user prompt with rigorous technical & market depth.
+3. LANGUAGE REQUIREMENT:
+- ALWAYS respond in the SAME language as the user's prompt (If the prompt is in Korean, respond entirely in natural, witty, engaging Korean. If English, respond in English).
+- Never default to English unless the user prompt is in English.
 
-For each idea:
-1. WRITE a full expanded paragraph (2-3 sentences) detailing the concrete real-world mechanism, engineering workflow, and distinct user experience.
-2. Formulate an evocative creative leap trail in "thoughtProcess" (4-6 crisp nodes linked by →, e.g. "Domain Collision → PO Inversion → Mechanical Anchor → Market Moat"). NEVER end with a trailing arrow.
-3. Conduct a Market & Novelty Audit to score (0-100):
-   - syn (Brand Velocity & Memorability): SMILE test compliance, phonetic stickiness, sound symbolism (penalize boring or cheesy literal compounds).
-   - fea (Feasibility & Execution): Engineering viability, physical/regulatory reality, prototype readiness.
-   - rel (Core Relevance): Direct effectiveness in solving the user prompt's fundamental friction.
-   - nov (Novelty & Prior-Art Differentiation): True originality compared to existing global products, patents, and web startups (heavily penalize existing clichés).
-4. "reason": A crisp 1-2 sentence strategic verdict analyzing the core mechanical breakthrough, execution edge, and market differentiation against prior art.
-   STRICT REQUIREMENT: Do NOT merely define or explain the name (NEVER start with "The name hints at...", "The name merges...", or "The name reflects..."). Evaluate the substantive innovation, its competitive moat, and why it succeeds where conventional solutions fail.
+Format for each idea:
+- "t": Catchy Title / Response Hook / Brand Name
+- "tag": Primary Creative Archetype (e.g. "역발상 • 유머", "심리적 반전", "호기심 유발", "이종 결합", "초현실적 위트")
+- "s": 1-sentence punchy summary of the concrete idea/reply and why it works.
 
-English only. Output must be a valid JSON object matching this schema:
-{"evaluations":[{"i":index,"title":"BrandName","tag":"Archetype","content":"Expanded idea paragraph…","thoughtProcess":"Inspiration→Collision→Anchor→Moat","syn":n,"fea":n,"rel":n,"nov":n,"reason":"Crisp strategic verdict on breakthrough mechanism and novelty"}]}`;
+Respond strictly in JSON:
+{"ideas":[{"t":"TitleOrHook","tag":"Archetype","s":"Punchy summary"},…]}`;
+
+// ── Context-Aware Evaluation & Creative Audit System Prompt ──
+const EVAL_SYSTEM = `Master Creative Critic, Strategic Evaluator & Novelty Auditor.
+Analyze all 15 ideas/responses against the user prompt with sharp contextual intelligence and critical rigor.
+
+1. LANGUAGE:
+- Respond in the EXACT SAME language as the ideas and user prompt (Korean for Korean prompt, English for English prompt).
+
+2. FOR EACH IDEA:
+- "content": Expand into 2-3 vivid sentences detailing the concrete execution, real-world scenario, psychological reaction, or practical user experience.
+- "thoughtProcess": Formulate a crisp 4-5 node creative reasoning trail linked by → (e.g. "상투적 클리셰 탈피 → 호기심 자극 → 심리적 핑퐁 → 대화 주도권"). Ensure NO trailing arrows.
+- Score (0-100):
+  - syn (Syntax / Punch / Memorability): Delivery velocity, linguistic charm, catchiness, emotional resonance.
+  - fea (Feasibility / Usability): Practical applicability in real life/context.
+  - rel (Relevance): How accurately and effectively it addresses the user's specific request.
+  - nov (Novelty / Unpredictability): Degree of freshness, originality, and departure from cliché.
+- "reason": A crisp 1-2 sentence incisive verdict analyzing WHY this idea/reply works, its psychological or strategic edge, and what makes it distinct from conventional approaches (DO NOT merely describe the name/title!).
+
+Output must be a valid JSON object matching this schema:
+{"evaluations":[{"i":index,"title":"Title","tag":"Archetype","content":"Expanded execution paragraph…","thoughtProcess":"Node1→Node2→Node3→Node4","syn":n,"fea":n,"rel":n,"nov":n,"reason":"Crisp strategic verdict on effectiveness and novelty"}]}`;
 
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
@@ -646,12 +664,24 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
  * Enhances user prompt into a structured command using specialized ideation catalyst modes.
  */
 export async function enhancePrompt(_providerConfig, prompt, catalystMode = 'auto') {
-    const catalystInstructions = {
-        bisociation: `Apply Bisociation & Cross-Domain Collision: Pair "${prompt}" with surprising external fields (e.g., aerospace, mycology, street magic, deep-sea biology) to generate 15 radical concepts with sticky SMILE brand names.`,
-        provocation: `Apply Provocation & Movement (PO): Start with impossible or inverted assumptions about "${prompt}", then pivot each absurdity into 15 feasible, game-changing breakthroughs with punchy brand names.`,
-        oblique: `Apply Oblique Strategies & Extreme Paradoxical Constraints: Impose striking unconventional rules on "${prompt}" to discover 15 unexpected, ingenious ideas with catchy brand names.`,
-        naming: `Apply World-Class Brand Naming Lab (SMILE Test & Sound Symbolism: Portmanteau, Metaphor, Kiki/Bouba phonetics): Invent 15 high-market-value products for "${prompt}" with unforgettable names.`,
-        auto: `Apply elite creative thinking (Bisociation, PO Provocation, Inversion, SMILE Brand Naming): generate 15 genuinely unconventional, game-changing ideas for: ${prompt}`
+    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(prompt);
+
+    const catalystInstructionsKo = {
+        bisociation: `[이종 결합 / Bisociation]: "${prompt}"의 본질을 분석하고, 의외의 영역과 충돌시켜 상투적이지 않고 가장 기발한 15가지 창의적 해결책/답변/아이디어를 제시하라.`,
+        provocation: `[역발상 및 도발 / PO]: "${prompt}"에 대한 모든 당연한 상식과 고정관념을 뒤집어, 기존의 뻔한 방식을 박살 내는 15가지 파격적인 발상을 도출하라.`,
+        oblique: `[사선 전략 / Oblique]: "${prompt}"에 예상치 못한 극단적 제약이나 독특한 앵글을 적용하여, 아무도 생각하지 못한 영리한 15가지 방식을 발견하라.`,
+        naming: `[매력적 작명 & 카피 / Naming & Hook]: "${prompt}"에 가장 강력하게 각인되는 15가지 매혹적인 네이밍, 후킹 카피, 또는 멘트를 고안하라.`,
+        auto: `"${prompt}"에 대해 사용자의 의도를 정확히 꿰뚫고, 고정관념을 깬 가장 참신하고 실전 효과가 뛰어난 15가지 아이디어/답변/접근법을 도출하라.`
     };
-    return catalystInstructions[catalystMode] || catalystInstructions.auto;
+
+    const catalystInstructionsEn = {
+        bisociation: `Apply Bisociation & Cross-Domain Collision: Pair "${prompt}" with surprising external fields to discover 15 genuinely radical, fresh ideas/responses.`,
+        provocation: `Apply Provocation & Movement (PO): Invert conventional assumptions about "${prompt}" to generate 15 breakthrough, unconventional ideas/responses.`,
+        oblique: `Apply Oblique Strategies: Impose striking constraints on "${prompt}" to reveal 15 ingenious, out-of-the-box approaches.`,
+        naming: `Apply World-Class Hook & Naming: Create 15 high-impact, sticky titles, catchphrases, or brand concepts for "${prompt}".`,
+        auto: `Generate 15 genuinely unconventional, highly creative, and context-appropriate ideas/responses that directly fulfill: ${prompt}`
+    };
+
+    const instructions = isKorean ? catalystInstructionsKo : catalystInstructionsEn;
+    return instructions[catalystMode] || instructions.auto;
 }
