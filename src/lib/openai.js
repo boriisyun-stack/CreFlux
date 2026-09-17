@@ -513,15 +513,15 @@ async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasA
 
 function resolveModel(provider, model) {
     if (!model || !model.trim()) {
-        if (provider === 'groq') return 'llama-3.3-70b-versatile';
+        if (provider === 'groq') return 'openai/gpt-oss-120b';
         if (provider === 'gemini') return 'gemini-2.5-flash';
         if (provider === 'openrouter') return 'anthropic/claude-3.7-sonnet';
         if (provider === 'grok') return 'grok-2-latest';
         return 'gpt-5.6-luna';
     }
     const trimmed = model.trim();
-    if (provider === 'groq' && (trimmed.toLowerCase().includes('gpt-oss') || trimmed.toLowerCase() === 'llama3-70b-8192')) {
-        return 'llama-3.3-70b-versatile';
+    if (provider === 'groq' && trimmed.toLowerCase() === 'gpt-oss-120b') {
+        return 'openai/gpt-oss-120b';
     }
     return trimmed;
 }

@@ -25,7 +25,7 @@ globalStyles();
 
 const PROVIDERS = {
   openai: { name: 'OpenAI', defaultBase: 'https://api.openai.com/v1', defaultModel: 'gpt-5.6-luna' },
-  groq: { name: 'Groq', defaultBase: 'https://api.groq.com/openai/v1', defaultModel: 'llama-3.3-70b-versatile' },
+  groq: { name: 'Groq', defaultBase: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b' },
   gemini: { name: 'Google Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-2.5-flash' },
   grok: { name: 'xAI Grok', defaultBase: 'https://api.x.ai/v1', defaultModel: 'grok-2-latest' },
   openrouter: { name: 'OpenRouter', defaultBase: 'https://openrouter.ai/api/v1', defaultModel: 'anthropic/claude-3.7-sonnet' },
