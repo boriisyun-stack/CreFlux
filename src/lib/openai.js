@@ -313,59 +313,55 @@ function parseIdeasFromPlainText(text) {
 }
 
 // ── Universal Creative Catalyst & Ideation System Prompt ──
-const GEN_SYSTEM = `Master Creative Strategist & Innovation Catalyst.
-Your mission is to deeply understand the user's prompt intent and generate 15 genuinely creative, fresh, unconventional ideas that directly fulfill what they are seeking.
+const GEN_SYSTEM = `Master Creative Strategist & Context-Intelligent Ideator.
+사용자의 질문과 의도를 정확하게 파악하여, 뻔하고 상투적인 답변을 깨뜨리는 기발하고 실전성 높은 15가지 아이디어/답변을 도출하라.
 
-1. CRITICAL: INTENT & DOMAIN SENSITIVITY
-Accurately identify what the user is asking for:
-- If the user asks for REPLIES / ANSWERS / LINES / COMEBACKS (e.g., "Hi의 대답", "카톡 답장", "대화 멘트", "광고 카피"):
-  → Generate 15 brilliant, witty, unexpected, psychological, or situational answers/responses across diverse tones (humorous, reverse-psychology, intriguing, witty, bold, charming, deadpan).
-  → "t": The memorable catchphrase / hook / tactic name.
-  → "s": The exact reply line and its clever conversational/psychological dynamic.
-- If the user asks for PRODUCTS / STARTUPS / INVENTIONS / BRANDS:
-  → Generate 15 radical product/service breakthroughs with sticky, unforgettable brand names (SMILE principles, evocative metaphors, neologisms) and innovative mechanism designs.
-  → "t": Killer brand/codename.
-  → "s": 1-sentence breakthrough mechanism and value proposition.
-- If the user asks for METHODS / STRATEGIES / CREATIVE SOLUTIONS:
-  → Generate 15 out-of-the-box, unconventional tactics that break conventional clichés.
+[핵심 원칙: 제목 "t"는 가짜 브랜드명이 아니라, 사용자가 요구한 '실제 결과물 자체'여야 함]
+★ "PingHue", "QuantumYo", "HiFlux" 같은 뜬금없는 영어 스타트업/기술 코드명을 절대로 만들어내지 마라! (사용자가 명시적으로 영어 브랜드 네이밍을 요구한 경우 제외)
 
-2. CREATIVE FRAMEWORKS TO APPLY:
-- Inversion Thinking: Flip the default, predictable response 180 degrees.
-- Bisociation: Connect with surprising, witty analogies that genuinely fit the context.
-- Provocation (PO): Break sacred rules of the domain to reveal hidden brilliance.
-- High-Impact Delivery: Avoid boring, generic, common-sense clichés.
+1. 질문 유형별 "t" (제목) 작성 규칙:
+- 대화 / 답변 / 멘트 / 카톡 답장 / 인사 / 카피 요청 시 (예: "Hi의 대답", "소개팅 첫인사", "거절 멘트"):
+  → "t": 실제로 말할 '구체적인 답변/멘트 문장 자체'!
+    (예: "안녕? 마침 네 생각하고 있었는데!", "누구세요? 라고 하기엔 너무 반가운 얼굴이네", "오늘 무슨 좋은 일 있어?")
+  → "s": 이 답변이 상대의 심리를 어떻게 움직이고 대화 주도권을 잡는지 1~2문장으로 설명.
+- 메뉴 / 음식 / 선물 / 장소 / 아이템 추천 요청 시 (예: "점심 메뉴 골라줘", "선물 추천"):
+  → "t": 추천하는 '구체적인 아이템/메뉴 이름 자체'! (예: "얼큰 김치 차돌 칼국수", "온열 무선 목 마사지기")
+  → "s": 왜 이 선택이 매력적이고 상황에 딱 맞는지 1~2문장으로 설명.
+- 기획 / 솔루션 / 비즈니스 / 앱 아이디어 요청 시:
+  → "t": 핵심을 직관적으로 드러내는 명확한 컨셉 제목 (예: "잔반 스캔 기반 개인 맞춤 식단 AI")
+  → "s": 1~2문장의 핵심 메커니즘 및 파격적 차별점.
+- 오직 사용자가 명시적으로 '이름/브랜드명/작명'을 요구한 경우에만:
+  → "t": 제안하는 매력적인 브랜드/제품명.
 
-3. LANGUAGE REQUIREMENT:
-- ALWAYS respond in the SAME language as the user's prompt (If the prompt is in Korean, respond entirely in natural, witty, engaging Korean. If English, respond in English).
-- Never default to English unless the user prompt is in English.
+2. 언어 일치 원칙 (절대 준수):
+- 사용자의 프롬프트 언어와 100% 동일한 언어로 응답하라.
+- 한국어 프롬프트에는 제목("t"), 태그("tag"), 내용("s") 모두 자연스럽고 생생한 한국어로만 작성하라. 불필요한 영어 남발 금지.
 
-Format for each idea:
-- "t": Catchy Title / Response Hook / Brand Name
-- "tag": Primary Creative Archetype (e.g. "역발상 • 유머", "심리적 반전", "호기심 유발", "이종 결합", "초현실적 위트")
-- "s": 1-sentence punchy summary of the concrete idea/reply and why it works.
+3. "tag" (발상 기법/톤앤매너):
+- 각 아이디어의 발상 특징을 2~4단어로 표현 (예: "기분 좋은 훅", "심리적 반전", "유쾌한 도발", "호기심 유발", "공감형 위트", "역발상").
 
-Respond strictly in JSON:
-{"ideas":[{"t":"TitleOrHook","tag":"Archetype","s":"Punchy summary"},…]}`;
+반드시 유효한 JSON 형식으로 응답하라:
+{"ideas":[{"t":"실제답변문장또는직관적핵심제목","tag":"발상기법","s":"구체적 설명 및 심리적/실전적 효과"},...]}`;
 
 // ── Context-Aware Evaluation & Creative Audit System Prompt ──
-const EVAL_SYSTEM = `Master Creative Critic, Strategic Evaluator & Novelty Auditor.
-Analyze all 15 ideas/responses against the user prompt with sharp contextual intelligence and critical rigor.
+const EVAL_SYSTEM = `Master Creative Critic & Context-Aware Evaluator.
+제공된 15개 아이디어/답변을 사용자의 원래 질문 의도에 맞춰 날카롭게 분석하고 평가하라.
 
-1. LANGUAGE:
-- Respond in the EXACT SAME language as the ideas and user prompt (Korean for Korean prompt, English for English prompt).
+[평가 및 확장 규칙]
+1. 언어: 사용자의 프롬프트 및 아이디어 목록과 동일한 언어로 응답하라 (한국어 요청은 100% 한국어로).
+2. "title": 아이디어 목록에 제공된 원래의 제목/멘트를 '그대로' 유지하라. 임의로 영어 코드명이나 엉뚱한 이름으로 변경 절대 금지!
+3. "tag": 발상 유형/톤 (예: "심리적 반전", "유쾌한 도발", "공감형 위트", "기분 좋은 훅").
+4. "content": 실제 적용 시나리오, 구체적 대화 흐름, 심리적 반응, 실전 팁을 생생한 2~3문장으로 확장하라.
+5. "thoughtProcess": 발상의 인과 흐름을 4~5개 노드로 화살표(→) 연결 (예: "상투적 인사 탈피 → 호기심 자극 → 심리적 핑퐁 → 대화 주도권"). 끝에 남는 화살표가 없어야 함.
+6. 점수 (0-100 정수):
+   - syn (전달력/말맛/임팩트): 표현의 매력도, 흡인력, 기억에 남는 정도
+   - fea (실전 활용성): 실생활이나 상황에서 얼마나 자연스럽고 효과적으로 쓸 수 있는지
+   - rel (의도 적합성): 사용자의 질문 의도에 얼마나 정확하게 부합하는지
+   - nov (참신성/독창성): 뻔한 클리셰를 벗어난 신선한 발상인지
+7. "reason": 왜 이 답변/아이디어가 효과적인지, 어떤 심리적/실전적 차별점이 있는지 핵심을 찌르는 1~2문장 심사평.
 
-2. FOR EACH IDEA:
-- "content": Expand into 2-3 vivid sentences detailing the concrete execution, real-world scenario, psychological reaction, or practical user experience.
-- "thoughtProcess": Formulate a crisp 4-5 node creative reasoning trail linked by → (e.g. "상투적 클리셰 탈피 → 호기심 자극 → 심리적 핑퐁 → 대화 주도권"). Ensure NO trailing arrows.
-- Score (0-100):
-  - syn (Syntax / Punch / Memorability): Delivery velocity, linguistic charm, catchiness, emotional resonance.
-  - fea (Feasibility / Usability): Practical applicability in real life/context.
-  - rel (Relevance): How accurately and effectively it addresses the user's specific request.
-  - nov (Novelty / Unpredictability): Degree of freshness, originality, and departure from cliché.
-- "reason": A crisp 1-2 sentence incisive verdict analyzing WHY this idea/reply works, its psychological or strategic edge, and what makes it distinct from conventional approaches (DO NOT merely describe the name/title!).
-
-Output must be a valid JSON object matching this schema:
-{"evaluations":[{"i":index,"title":"Title","tag":"Archetype","content":"Expanded execution paragraph…","thoughtProcess":"Node1→Node2→Node3→Node4","syn":n,"fea":n,"rel":n,"nov":n,"reason":"Crisp strategic verdict on effectiveness and novelty"}]}`;
+반드시 다음 JSON 스키마로 출력하라:
+{"evaluations":[{"i":0,"title":"원래제목그대로","tag":"태그","content":"상세 실행 및 시나리오 2~3문장","thoughtProcess":"노드1→노드2→노드3→노드4","syn":88,"fea":90,"rel":95,"nov":85,"reason":"핵심 심사평"}]}`;
 
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
@@ -415,11 +411,10 @@ async function generateWithGeminiNative(providerConfig, prompt, temperature) {
 
 function compactIdeasForEval(ideasArray) {
     const normalized = normalizeIdeas(ideasArray);
-    // Convert to numbered list string: "0. Title – Summary\n1. ..."
     return normalized.map((idea, i) => {
         const title = idea.t || idea.title || '';
         const summary = idea.s || idea.content || '';
-        return `${i}. ${title} – ${summary}`;
+        return `${i}. [${title}] ${summary}`;
     }).join('\n');
 }
 
@@ -451,9 +446,11 @@ function mapEvalResults(evaluations, ideasArray) {
             const idx = Number(item.i ?? item.index ?? item.id);
             const hasIndex = Number.isFinite(idx) && idx >= 0 && idx < ideaPool.length;
             const baseIdea = hasIndex ? ideaPool[Math.trunc(idx)] : ideaPool[index];
-            const title = asString(item.title ?? item.t ?? baseIdea?.t ?? `Idea ${index + 1}`);
+            const baseTitle = asString(baseIdea?.t);
+            const evalTitle = asString(item.title ?? item.t);
+            const title = baseTitle || evalTitle || `Idea ${index + 1}`;
             const idea = asString(item.content ?? item.idea ?? item.description ?? baseIdea?.s ?? title);
-            const thoughtProcess = asString(item.thoughtProcess ?? item.chain ?? item.thought ?? item.conceptTrail ?? `${(title.split(/[\s-]/)[0] || 'Concept')}→CoreLogic→Feasibility→MarketImpact`);
+            const thoughtProcess = asString(item.thoughtProcess ?? item.chain ?? item.thought ?? item.conceptTrail ?? `${(title.split(/[\s-]/)[0] || '발상')}→고정관념탈피→심리적접근→핵심실행`);
 
             const scoresObj = item.scores || item.evaluation || item.metrics || item.score || item;
             const defaultScores = generateHeuristicScores(title, idea, index);
@@ -468,8 +465,8 @@ function mapEvalResults(evaluations, ideasArray) {
             const relevance = rawRel !== undefined && rawRel !== null ? clampScore(rawRel) : defaultScores.relevance;
             const novelty = rawNov !== undefined && rawNov !== null ? clampScore(rawNov) : defaultScores.novelty;
 
-            const tag = asString(item.tag ?? item.archetype ?? item.method ?? baseIdea?.tag ?? 'Creative Catalyst');
-            const reasoning = asString(item.reason ?? item.reasoning ?? item.rationale ?? 'Evaluated based on conceptual alignment and practicality.');
+            const tag = asString(item.tag ?? item.archetype ?? item.method ?? baseIdea?.tag ?? '역발상');
+            const reasoning = asString(item.reason ?? item.reasoning ?? item.rationale ?? '상투적인 틀을 벗어나 실전 활용성과 전달력을 고루 갖춘 제안입니다.');
 
             return {
                 title,

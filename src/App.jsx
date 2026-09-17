@@ -440,26 +440,38 @@ const SAMPLE_IDEA = {
 };
 
 function buildFallbackResults(rawIdeas = []) {
-  const archetypes = [
-    'Portmanteau • Bisociation',
-    'PO Stepping Stone',
-    'Inversion Catalyst',
-    'Sound Symbolism',
-    'Oblique Strategy',
-    'Metaphoric Leap'
+  const koreanArchetypes = [
+    '역발상 • 유머',
+    '심리적 반전',
+    '호기심 유발',
+    '공감형 위트',
+    '파격적 도발',
+    '이종 결합'
+  ];
+  const englishArchetypes = [
+    'Inversion • Humor',
+    'Psychological Pivot',
+    'Curiosity Hook',
+    'Empathic Wit',
+    'Provocative Angle',
+    'Cross-Domain Blend'
   ];
 
   return rawIdeas.slice(0, 15).map((idea, index) => {
     const isObjectIdea = idea && typeof idea === 'object';
     const title = isObjectIdea
-      ? (idea.t || idea.title || `Idea ${index + 1}`)
-      : `Idea ${index + 1}`;
-    const tag = isObjectIdea && (idea.tag || idea.archetype)
-      ? (idea.tag || idea.archetype)
-      : archetypes[index % archetypes.length];
+      ? (idea.t || idea.title || `아이디어 ${index + 1}`)
+      : `아이디어 ${index + 1}`;
     const description = isObjectIdea
       ? (idea.s || idea.content || idea.idea || title)
       : String(idea || '').trim();
+
+    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(`${title} ${description}`);
+    const archetypes = isKorean ? koreanArchetypes : englishArchetypes;
+
+    const tag = isObjectIdea && (idea.tag || idea.archetype)
+      ? (idea.tag || idea.archetype)
+      : archetypes[index % archetypes.length];
 
     const text = `${title} ${description} ${index}`;
     let hash = 0;
@@ -468,17 +480,25 @@ function buildFallbackResults(rawIdeas = []) {
     }
     const h = Math.abs(hash);
 
+    const thoughtProcess = isKorean
+      ? `${(title.split(/[\s-]/)[0] || '발상')} → 고정관념탈피 → 심리적접근 → 핵심실행`
+      : `${(title.split(/[\s-]/)[0] || 'Concept')} → BreakCliché → PsychologicalAngle → Execution`;
+
+    const reasoning = isKorean
+      ? '상투적인 틀을 벗어나 실전 활용성과 심리적 임팩트를 고루 갖춘 참신한 접근입니다.'
+      : 'Breaks conventional clichés with high practical applicability and psychological resonance.';
+
     return {
       title,
       tag,
       idea: description || title,
-      thoughtProcess: `${(title.split(/[\s-]/)[0] || 'Concept')} ⚡ Collision → Friction → MarketLeap`,
+      thoughtProcess,
       evaluation: {
         syntax: 78 + (h % 18),
         feasibility: 65 + ((h >> 3) % 26),
         relevance: 80 + ((h >> 6) % 18),
         novelty: 82 + ((h >> 9) % 17),
-        reasoning: 'Evaluated baseline viability, naming resonance, and cross-domain novelty.',
+        reasoning,
       },
     };
   });
