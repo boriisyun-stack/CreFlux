@@ -24,11 +24,11 @@ import { getRandomPrompt } from './lib/prompts';
 globalStyles();
 
 const PROVIDERS = {
-  openai: { name: 'OpenAI', defaultBase: 'https://api.openai.com/v1', defaultModel: 'gpt-6-astra' },
-  groq: { name: 'Groq', defaultBase: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b' },
-  gemini: { name: 'Google Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-3.8-flash' },
-  grok: { name: 'xAI Grok', defaultBase: 'https://api.x.ai/v1', defaultModel: 'grok-4.6' },
-  openrouter: { name: 'OpenRouter', defaultBase: 'https://openrouter.ai/api/v1', defaultModel: 'anthropic/claude-sonnet-5' },
+  openai: { name: 'OpenAI', defaultBase: 'https://api.openai.com/v1', defaultModel: 'gpt-5.6-luna' },
+  groq: { name: 'Groq', defaultBase: 'https://api.groq.com/openai/v1', defaultModel: 'llama-3.3-70b-versatile' },
+  gemini: { name: 'Google Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-2.5-flash' },
+  grok: { name: 'xAI Grok', defaultBase: 'https://api.x.ai/v1', defaultModel: 'grok-2-latest' },
+  openrouter: { name: 'OpenRouter', defaultBase: 'https://openrouter.ai/api/v1', defaultModel: 'anthropic/claude-3.7-sonnet' },
   custom: { name: 'Custom Endpoint', defaultBase: '', defaultModel: '' },
 };
 
@@ -1441,7 +1441,7 @@ export default function App() {
                             <Label>Model Name</Label>
                             <Input
                               type="text"
-                              placeholder={PROVIDERS[provider]?.defaultModel || "e.g. gpt-6-astra"}
+                              placeholder={PROVIDERS[provider]?.defaultModel || "e.g. gpt-5.6-luna"}
                               value={model}
                               onChange={(e) => handleModelChange(e.target.value)}
                             />
