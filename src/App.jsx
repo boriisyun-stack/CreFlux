@@ -25,11 +25,44 @@ globalStyles();
 
 const PROVIDERS = {
   openai: { name: 'OpenAI', defaultBase: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
-  groq: { name: 'Groq', defaultBase: 'https://api.groq.com/openai/v1', defaultModel: 'openai/gpt-oss-120b' },
   gemini: { name: 'Google Gemini', defaultBase: 'https://generativelanguage.googleapis.com/v1beta/openai/', defaultModel: 'gemini-2.0-flash' },
+  groq: { name: 'Groq', defaultBase: 'https://api.groq.com/openai/v1', defaultModel: 'llama-3.3-70b-versatile' },
+  openrouter: { name: 'OpenRouter', defaultBase: 'https://openrouter.ai/api/v1', defaultModel: 'anthropic/claude-3.7-sonnet' },
   grok: { name: 'xAI Grok', defaultBase: 'https://api.x.ai/v1', defaultModel: 'grok-2-latest' },
-  openrouter: { name: 'OpenRouter', defaultBase: 'https://openrouter.ai/api/v1', defaultModel: 'mistralai/mistral-large-2411' },
   custom: { name: 'Custom Endpoint', defaultBase: '', defaultModel: '' },
+};
+
+const PROVIDER_MODELS = {
+  openai: [
+    { id: 'gpt-4o', label: 'GPT-4o (Flagship Omni - Recommended)' },
+    { id: 'gpt-4o-mini', label: 'GPT-4o Mini (Ultra Fast & Low Cost)' },
+    { id: 'o3-mini', label: 'o3-mini (Advanced Reasoning)' },
+    { id: 'gpt-4.5-preview', label: 'GPT-4.5 Preview (Frontier Scale)' },
+  ],
+  gemini: [
+    { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Recommended)' },
+    { id: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite (Low Latency)' },
+    { id: 'gemini-2.0-pro-exp-02-05', label: 'Gemini 2.0 Pro Experimental' },
+    { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
+  ],
+  groq: [
+    { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B Versatile (Recommended)' },
+    { id: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 Distill 70B' },
+    { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B Instant (Ultra Fast)' },
+  ],
+  openrouter: [
+    { id: 'anthropic/claude-3.7-sonnet', label: 'Claude 3.7 Sonnet (Anthropic SOTA)' },
+    { id: 'deepseek/deepseek-r1', label: 'DeepSeek R1 (Open Reasoning SOTA)' },
+    { id: 'google/gemini-2.0-flash-001', label: 'Gemini 2.0 Flash (OpenRouter)' },
+    { id: 'openai/gpt-4o-2024-11-20', label: 'GPT-4o (Latest Snapshot)' },
+    { id: 'meta-llama/llama-3.3-70b-instruct', label: 'Llama 3.3 70B Instruct' },
+  ],
+  grok: [
+    { id: 'grok-2-latest', label: 'Grok 2 Latest (xAI Flagship)' },
+    { id: 'grok-2-1212', label: 'Grok 2 (1212 Release)' },
+    { id: 'grok-beta', label: 'Grok Beta' },
+  ],
+  custom: []
 };
 
 const SLIDER_LABELS = ["Precise", "Grounded", "Balanced", "Inventive", "Experimental"];
@@ -1096,7 +1129,13 @@ export default function App() {
     try {
       const configs = JSON.parse(localStorage.getItem('creflux_provider_configs') || '{}');
       const prov = localStorage.getItem('creflux_provider') || 'openai';
-      return configs[prov]?.model ?? PROVIDERS[prov]?.defaultModel ?? '';
+      let m = configs[prov]?.model;
+      if (prov === 'groq' && (!m || m.includes('gpt-oss') || m === 'llama3-70b-8192')) {
+        m = PROVIDERS.groq.defaultModel;
+      } else if (prov === 'openrouter' && (!m || m.includes('mistral-large-2411'))) {
+        m = PROVIDERS.openrouter.defaultModel;
+      }
+      return m ?? PROVIDERS[prov]?.defaultModel ?? '';
     } catch { return PROVIDERS.openai.defaultModel; }
   });
 
@@ -1162,7 +1201,12 @@ export default function App() {
     const customConf = providerConfigs[newProv];
     if (newProv !== 'custom') {
       const b = customConf?.baseURL ?? PROVIDERS[newProv].defaultBase;
-      const m = customConf?.model ?? PROVIDERS[newProv].defaultModel;
+      let m = customConf?.model ?? PROVIDERS[newProv].defaultModel;
+      if (newProv === 'groq' && (m.includes('gpt-oss') || m === 'llama3-70b-8192')) {
+        m = PROVIDERS.groq.defaultModel;
+      } else if (newProv === 'openrouter' && m.includes('mistral-large-2411')) {
+        m = PROVIDERS.openrouter.defaultModel;
+      }
       setBaseURL(b);
       setModel(m);
     } else {
@@ -1438,13 +1482,56 @@ export default function App() {
                           </FormGroup>
 
                           <FormGroup>
-                            <Label>Model Name</Label>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                              <Label>Model Name</Label>
+                              {PROVIDER_MODELS[provider]?.length > 0 && (
+                                <span style={{ fontSize: '0.72rem', color: 'var(--colors-secondary)', fontWeight: 600 }}>
+                                  ⚡ Latest Presets
+                                </span>
+                              )}
+                            </div>
                             <Input
                               type="text"
-                              placeholder="e.g. gpt-4o"
+                              list={`presets-${provider}`}
+                              placeholder={PROVIDERS[provider]?.defaultModel || "Enter model name"}
                               value={model}
                               onChange={(e) => handleModelChange(e.target.value)}
                             />
+                            {PROVIDER_MODELS[provider]?.length > 0 && (
+                              <datalist id={`presets-${provider}`}>
+                                {PROVIDER_MODELS[provider].map((m) => (
+                                  <option key={m.id} value={m.id}>{m.label}</option>
+                                ))}
+                              </datalist>
+                            )}
+                            {PROVIDER_MODELS[provider]?.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                                {PROVIDER_MODELS[provider].map((m) => {
+                                  const isSelected = model === m.id;
+                                  return (
+                                    <button
+                                      key={m.id}
+                                      type="button"
+                                      onClick={() => handleModelChange(m.id)}
+                                      style={{
+                                        padding: '3px 9px',
+                                        fontSize: '0.72rem',
+                                        fontWeight: isSelected ? 700 : 500,
+                                        borderRadius: '9999px',
+                                        border: isSelected ? '1px solid var(--colors-primary)' : '1px solid rgba(0,0,0,0.12)',
+                                        background: isSelected ? 'linear-gradient(135deg, rgba(255,0,110,0.15), rgba(58,134,255,0.15))' : 'rgba(255,255,255,0.75)',
+                                        color: isSelected ? 'var(--colors-primary)' : 'var(--colors-textMuted)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s ease',
+                                      }}
+                                      title={m.label}
+                                    >
+                                      {m.id.split('/').pop()}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </FormGroup>
                         </FormRow>
 

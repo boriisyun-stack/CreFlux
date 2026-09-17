@@ -351,7 +351,8 @@ English only. Output must be a valid JSON object matching this schema:
 
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const modelName = model?.trim() || 'gemini-2.0-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
     const safeTemperature = Number.isFinite(Number(temperature)) ? Number(temperature) : 1;
     const payload = {
         system_instruction: { parts: [{ text: GEN_SYSTEM }] },
@@ -473,8 +474,9 @@ function mapEvalResults(evaluations, ideasArray) {
 async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasArray) {
     const { apiKey, model } = providerConfig;
     const compactList = compactIdeasForEval(ideasArray);
+    const modelName = model?.trim() || 'gemini-2.0-flash';
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
     const payload = {
         system_instruction: { parts: [{ text: EVAL_SYSTEM }] },
         contents: [{ parts: [{ text: `Prompt: ${asString(prompt)}\n\nIdeas to evaluate:\n${compactList}\n\nRespond with valid JSON containing all evaluations.` }] }],
@@ -510,10 +512,19 @@ async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasA
 }
 
 function resolveModel(provider, model) {
-    if (!model) return 'gpt-4o';
+    if (!model || !model.trim()) {
+        if (provider === 'groq') return 'llama-3.3-70b-versatile';
+        if (provider === 'gemini') return 'gemini-2.0-flash';
+        if (provider === 'openrouter') return 'anthropic/claude-3.7-sonnet';
+        if (provider === 'grok') return 'grok-2-latest';
+        return 'gpt-4o';
+    }
     const trimmed = model.trim();
-    if (provider === 'groq' && trimmed.toLowerCase() === 'gpt-oss-120b') {
-        return 'openai/gpt-oss-120b';
+    if (provider === 'groq' && (trimmed.toLowerCase().includes('gpt-oss') || trimmed.toLowerCase() === 'llama3-70b-8192')) {
+        return 'llama-3.3-70b-versatile';
+    }
+    if (provider === 'openrouter' && trimmed.toLowerCase().includes('mistral-large-2411')) {
+        return 'anthropic/claude-3.7-sonnet';
     }
     return trimmed;
 }
@@ -536,21 +547,23 @@ export async function generateIdeas(providerConfig, prompt, temperature = 2.0) {
     const openai = new OpenAI(clientConfig);
 
     const resolvedModel = resolveModel(provider, model);
+    const isReasoningModel = /^(o1|o3|deepseek-r1)/i.test(resolvedModel);
 
     try {
         const payload = {
             model: resolvedModel,
             messages: [
-                { role: 'system', content: GEN_SYSTEM },
+                { role: isReasoningModel ? 'developer' : 'system', content: GEN_SYSTEM },
                 { role: 'user', content: prompt }
             ],
-            temperature,
-            max_tokens: 4096,
+            ...(isReasoningModel
+                ? { max_completion_tokens: 4096 }
+                : { max_tokens: 4096, temperature }),
         };
         if (provider === 'groq') {
             payload.reasoning_format = 'parsed';
         }
-        if (provider !== 'groq' && !resolvedModel.toLowerCase().includes('gpt-oss')) {
+        if (provider !== 'groq' && !isReasoningModel && !resolvedModel.toLowerCase().includes('gpt-oss')) {
             payload.presence_penalty = 2.0;
             payload.frequency_penalty = 2.0;
         }
@@ -599,16 +612,18 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
 
     const compactList = compactIdeasForEval(ideasArray);
     const resolvedModel = resolveModel(provider, model);
+    const isReasoningModel = /^(o1|o3|deepseek-r1)/i.test(resolvedModel);
 
     try {
         const payload = {
             model: resolvedModel,
             messages: [
-                { role: 'system', content: EVAL_SYSTEM },
+                { role: isReasoningModel ? 'developer' : 'system', content: EVAL_SYSTEM },
                 { role: 'user', content: `Prompt: ${prompt}\n\nIdeas to evaluate:\n${compactList}\n\nRespond with valid JSON containing the evaluations array.` }
             ],
-            temperature: 0.1,
-            max_tokens: 4096,
+            ...(isReasoningModel
+                ? { max_completion_tokens: 4096 }
+                : { max_tokens: 4096, temperature: 0.1 }),
         };
         if (provider === 'groq') {
             payload.reasoning_format = 'parsed';
