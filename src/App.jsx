@@ -497,10 +497,10 @@ function buildFallbackResults(rawIdeas = []) {
       idea: description || title,
       thoughtProcess,
       evaluation: {
-        syntax: 78 + (h % 18),
-        feasibility: 65 + ((h >> 3) % 26),
-        relevance: 80 + ((h >> 6) % 18),
-        novelty: 82 + ((h >> 9) % 17),
+        syntax: 70 + (h % 23),
+        feasibility: 20 + ((h >> 3) % 55),
+        relevance: 60 + ((h >> 6) % 35),
+        novelty: 65 + ((h >> 9) % 30),
         reasoning,
       },
     };

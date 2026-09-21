@@ -231,10 +231,10 @@ function generateHeuristicScores(title, summary, index) {
     }
     const h = Math.abs(hash);
     return {
-        syntax: 75 + (h % 21),         // 75 - 95
-        feasibility: 60 + ((h >> 3) % 31), // 60 - 90
-        relevance: 78 + ((h >> 6) % 20),   // 78 - 97
-        novelty: 68 + ((h >> 9) % 28),     // 68 - 95
+        syntax: 70 + (h % 23),             // 70 - 92
+        feasibility: 20 + ((h >> 3) % 55), // 20 - 74
+        relevance: 60 + ((h >> 6) % 35),   // 60 - 94
+        novelty: 65 + ((h >> 9) % 30),     // 65 - 94
     };
 }
 
@@ -358,26 +358,40 @@ Respond strictly in valid JSON:
 {"ideas":[{"t":"DirectTitleOrPhrase","tag":"Archetype","s":"Execution mechanism and rationale"},...]}`;
 
 // ── Context-Aware Evaluation & Creative Audit System Prompt ──
-const EVAL_SYSTEM = `Master Creative Critic & Context-Aware Evaluator.
-Critically evaluate the provided 15 ideas/responses against the user's prompt intent with rigorous analytical depth.
+const EVAL_SYSTEM = `Master Creative Critic, Skeptical Engineering Auditor & Novelty Evaluator.
+Critically evaluate the 15 ideas/responses against the user's prompt with ruthless analytical rigor and hard realism. Do NOT be polite or sycophantic. Score strictly and realistically.
 
 [STRICT LANGUAGE MANDATE: UNCONDITIONALLY RESPOND IN ENGLISH]
 ★ All outputs ("title", "tag", "content", "thoughtProcess", "reason") MUST BE 100% IN CRISP, PROFESSIONAL ENGLISH. Never output Korean or any other non-English language.
 
-[Rules]
-1. "title": Retain the EXACT original title from the ideas list. Do NOT change it or translate it.
-2. "tag": Archetype or tone category in English (e.g., "Psychological Pivot", "Counterfactual Probe", "Constraint Remix").
-3. "content": Expand into 2-3 vivid sentences detailing the concrete execution, real-world scenario, psychological reaction, and practical usage.
-4. "thoughtProcess": 4-5 nodes connected by → without trailing arrows (e.g., "PremiseInversion → FrictionGeneration → DynamicPingPong → ConversationalDominance").
-5. Scores (0-100 integers):
-   - syn (Syntax / Delivery / Punch): Memorability, linguistic impact, delivery sharpness.
-   - fea (Feasibility / Usability): Practical applicability in real-world scenarios.
-   - rel (Relevance): How directly and effectively it satisfies the user's request.
-   - nov (Novelty / Unconventionality): Degree of originality and departure from boring clichés.
-6. "reason": An incisive 1-2 sentence critical verdict in English analyzing WHY this approach works, its psychological/strategic edge, and what makes it distinct.
+[SCORING RUBRIC - ZERO INFLATION TOLERANCE]
+- "fea" (Feasibility / Real-World Usability, 0-100):
+  * 0 - 25: Pure Sci-Fi / Violates Physics, Thermodynamics, or Known Biology (e.g. quantum soul entanglement, time-reversal, multiverse anchors, astral cosmic sharding, resurrection). MUST score ≤ 25!
+  * 26 - 45: Highly Speculative / Unproven Tech requiring major scientific breakthroughs decades away (e.g. whole-brain nanobot extraction lattices, mind-machine organoid hybrids).
+  * 46 - 65: Plausible but Extremely Difficult with huge technical/resource barriers (e.g. complex CRISPR circuits, sustained cryoloop stasis).
+  * 66 - 80: High Engineering Feasibility using existing technologies today (e.g. decentralized software pipelines, local AI fine-tunes, complex automation workflows).
+  * 81 - 100: Immediately practical and deployable today with off-the-shelf tools.
+  * METAPHORICAL COP-OUT PENALTY: If the user asks for a physical, biological, or technical breakthrough (e.g. actual immortality, energy, speed) and an idea merely offers a metaphorical or symbolic workaround (e.g. "writing a memoir novel", "posting viral memes", "creating an art gallery"), DO NOT grant high feasibility or high relevance! Score feasibility strictly on whether it solves the actual underlying problem, and penalize relevance accordingly.
+
+- "rel" (Relevance to User's Specific Prompt & Intent, 0-100):
+  * How directly and legitimately does this address the user's core problem?
+  * Deduct heavily (below 60) if it evades the core question, drifts into unrelated topics, or substitutes a real solution with a philosophical metaphor.
+
+- "nov" (Novelty / Unpredictability, 0-100):
+  * Genuine departure from clichés vs. regurgitated tropes. (e.g. "writing a book to live forever" is an ancient cliché: nov should be < 50).
+
+- "syn" (Linguistic Precision, Delivery, Memorability, 0-100):
+  * Punchiness, conceptual clarity, and lack of fluffy buzzwords.
+
+[Output Fields]
+1. "title": Retain the EXACT original title from the ideas list. Do NOT alter it.
+2. "tag": Precise 2-4 word archetype/tone in English.
+3. "content": Expand into 2-3 vivid sentences detailing the concrete execution, engineering mechanics, and real-world failure points.
+4. "thoughtProcess": 4-5 nodes connected by → without trailing arrows (e.g. "BiophysicalConstraint → MolecularTagging → ScaffoldSynthesis → StructuralFailureCheck").
+5. "reason": A sharp, honest, skeptical 1-2 sentence audit detailing the concept's fatal technical bottleneck or legitimate practical edge.
 
 Respond strictly in valid JSON:
-{"evaluations":[{"i":0,"title":"ExactTitle","tag":"Archetype","content":"Detailed 2-3 sentence execution…","thoughtProcess":"Node1→Node2→Node3→Node4","syn":88,"fea":90,"rel":95,"nov":85,"reason":"Critical verdict in English"}]}`;
+{"evaluations":[{"i":0,"title":"ExactTitle","tag":"Archetype","content":"Detailed execution and technical reality…","thoughtProcess":"Node1→Node2→Node3→Node4","syn":76,"fea":28,"rel":60,"nov":88,"reason":"Conceptually audacious but fundamentally blocked by decoherence and unproven physics."}]}`;
 
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
