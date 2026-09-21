@@ -440,15 +440,7 @@ const SAMPLE_IDEA = {
 };
 
 function buildFallbackResults(rawIdeas = []) {
-  const koreanArchetypes = [
-    '역발상 • 유머',
-    '심리적 반전',
-    '호기심 유발',
-    '공감형 위트',
-    '파격적 도발',
-    '이종 결합'
-  ];
-  const englishArchetypes = [
+  const archetypes = [
     'Inversion • Humor',
     'Psychological Pivot',
     'Curiosity Hook',
@@ -460,14 +452,11 @@ function buildFallbackResults(rawIdeas = []) {
   return rawIdeas.slice(0, 15).map((idea, index) => {
     const isObjectIdea = idea && typeof idea === 'object';
     const title = isObjectIdea
-      ? (idea.t || idea.title || `아이디어 ${index + 1}`)
-      : `아이디어 ${index + 1}`;
+      ? (idea.t || idea.title || `Idea ${index + 1}`)
+      : `Idea ${index + 1}`;
     const description = isObjectIdea
       ? (idea.s || idea.content || idea.idea || title)
       : String(idea || '').trim();
-
-    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(`${title} ${description}`);
-    const archetypes = isKorean ? koreanArchetypes : englishArchetypes;
 
     const tag = isObjectIdea && (idea.tag || idea.archetype)
       ? (idea.tag || idea.archetype)
@@ -480,15 +469,7 @@ function buildFallbackResults(rawIdeas = []) {
     }
     const h = Math.abs(hash);
 
-    const cleanTitle = (title || '').replace(/[[\]()]/g, '').trim().split(/[\s-]/)[0] || (isKorean ? '발상' : 'Concept');
-
-    const koPatterns = [
-      `${cleanTitle} → 전제 조건 분석 → 잠재 변수 도출 → 실전 실행 프로토콜`,
-      `${cleanTitle} → 인과 관계 역추론 → 병목 지점 해소 → 고밀도 해법 도출`,
-      `${cleanTitle} → 핵심 가설 설정 → 반사실적 시뮬레이션 → 돌파구 합성`,
-      `${cleanTitle} → 관점 다층 전환 → 다차원 충돌 검증 → 실행 최적화`,
-      `${cleanTitle} → 제약 완급 조절 → 수축·이완 반복 → 차별화된 결과 도출`
-    ];
+    const cleanTitle = (title || '').replace(/[[\]()]/g, '').trim().split(/[\s-]/)[0] || 'Concept';
 
     const enPatterns = [
       `${cleanTitle} → PremiseAnalysis → VariableMapping → ExecutionProtocol`,
@@ -498,15 +479,7 @@ function buildFallbackResults(rawIdeas = []) {
       `${cleanTitle} → ConstraintOscillation → IterativeRefinement → DistinctNovelty`
     ];
 
-    const thoughtProcess = (isKorean ? koPatterns : enPatterns)[index % koPatterns.length];
-
-    const koReasons = [
-      `'${title}'의 핵심 메커니즘을 명확히 정의하고, 직관적인 사용성과 창의적 차별화를 동시에 확보한 전략적 접근입니다.`,
-      `기존의 단선적 접근법에서 벗어나 예외 케이스와 실전 효용성을 날카롭게 파고드는 구성입니다.`,
-      `목표 도달을 위한 논리적 인과가 촘촘하며, 실전에 즉시 도입 가능한 명확한 프로세스를 제시합니다.`,
-      `도메인의 숨은 변수를 포착하여 통상적인 한계를 뛰어넘는 신선한 통찰과 문제 해결력을 보여줍니다.`,
-      `제약 조건과 유연성의 균형을 효과적으로 유지하여 높은 완성도와 변별력을 이끌어냅니다.`
-    ];
+    const thoughtProcess = enPatterns[index % enPatterns.length];
 
     const enReasons = [
       `Defines the core mechanism of '${title}' with precision, balancing intuitive usability and creative novelty.`,
@@ -516,7 +489,7 @@ function buildFallbackResults(rawIdeas = []) {
       `Effectively balances strict constraints and adaptive flexibility to deliver high-density results.`
     ];
 
-    const reasoning = (isKorean ? koReasons : enReasons)[index % koReasons.length];
+    const reasoning = enReasons[index % enReasons.length];
 
     return {
       title,

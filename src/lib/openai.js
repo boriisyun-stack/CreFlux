@@ -239,24 +239,15 @@ function generateHeuristicScores(title, summary, index) {
 }
 
 const DEFAULT_ARCHETYPES = [
-    '역발상 • 유머',
-    '심리적 반전',
-    '호기심 유발',
-    '이종 결합 • 은유',
-    '파격적 위트'
+    'Inversion • Humor',
+    'Psychological Pivot',
+    'Curiosity Hook',
+    'Cross-Domain Collision',
+    'Provocative Angle'
 ];
 
-function generateDynamicThoughtProcess(title, summary, index) {
-    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(`${title} ${summary}`);
-    const cleanTitle = (title || '').replace(/[[\]()]/g, '').trim().split(/[\s-]/)[0] || (isKorean ? '발상' : 'Concept');
-
-    const koPatterns = [
-        `${cleanTitle} → 전제 조건 분석 → 잠재 변수 도출 → 실전 실행 프로토콜`,
-        `${cleanTitle} → 인과 관계 역추론 → 병목 지점 해소 → 고밀도 해법 도출`,
-        `${cleanTitle} → 핵심 가설 설정 → 반사실적 시뮬레이션 → 돌파구 합성`,
-        `${cleanTitle} → 관점 다층 전환 → 다차원 충돌 검증 → 실행 최적화`,
-        `${cleanTitle} → 제약 완급 조절 → 수축·이완 반복 → 차별화된 결과 도출`
-    ];
+function generateDynamicThoughtProcess(title, _summary, index) {
+    const cleanTitle = (title || '').replace(/[[\]()]/g, '').trim().split(/[\s-]/)[0] || 'Concept';
 
     const enPatterns = [
         `${cleanTitle} → PremiseAnalysis → VariableMapping → ExecutionProtocol`,
@@ -266,19 +257,10 @@ function generateDynamicThoughtProcess(title, summary, index) {
         `${cleanTitle} → ConstraintOscillation → IterativeRefinement → DistinctNovelty`
     ];
 
-    const patterns = isKorean ? koPatterns : enPatterns;
-    return patterns[index % patterns.length];
+    return enPatterns[index % enPatterns.length];
 }
 
-function generateDynamicReasoning(title, summary, index) {
-    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(`${title} ${summary}`);
-    const koReasons = [
-        `'${title}'의 핵심 메커니즘을 명확히 정의하고, 직관적인 사용성과 창의적 차별화를 동시에 확보한 전략적 접근입니다.`,
-        `기존의 단선적 접근법에서 벗어나 예외 케이스와 실전 효용성을 날카롭게 파고드는 구성입니다.`,
-        `목표 도달을 위한 논리적 인과가 촘촘하며, 실전에 즉시 도입 가능한 명확한 프로세스를 제시합니다.`,
-        `도메인의 숨은 변수를 포착하여 통상적인 한계를 뛰어넘는 신선한 통찰과 문제 해결력을 보여줍니다.`,
-        `제약 조건과 유연성의 균형을 효과적으로 유지하여 높은 완성도와 변별력을 이끌어냅니다.`
-    ];
+function generateDynamicReasoning(title, _summary, index) {
     const enReasons = [
         `Defines the core mechanism of '${title}' with precision, balancing intuitive usability and creative novelty.`,
         `Departs from linear conventions to address edge cases and practical efficacy with sharp contextual insight.`,
@@ -286,8 +268,7 @@ function generateDynamicReasoning(title, summary, index) {
         `Captures latent domain dynamics to overcome conventional limitations with fresh problem-solving power.`,
         `Effectively balances strict constraints and adaptive flexibility to deliver high-density results.`
     ];
-    const reasons = isKorean ? koReasons : enReasons;
-    return reasons[index % reasons.length];
+    return enReasons[index % enReasons.length];
 }
 
 function fallbackEvaluations(ideasArray) {
@@ -351,54 +332,52 @@ function parseIdeasFromPlainText(text) {
 
 // ── Universal Creative Catalyst & Ideation System Prompt ──
 const GEN_SYSTEM = `Master Creative Strategist & Context-Intelligent Ideator.
-사용자의 질문과 의도를 정확하게 파악하여, 뻔하고 상투적인 답변을 깨뜨리는 기발하고 실전성 높은 15가지 아이디어/답변을 도출하라.
+Analyze the user's prompt and intent, breaking conventional clichés to generate 15 genuinely unconventional, high-impact, actionable ideas/responses.
 
-[핵심 원칙: 제목 "t"는 가짜 브랜드명이 아니라, 사용자가 요구한 '실제 결과물 자체'여야 함]
-★ "PingHue", "QuantumYo", "HiFlux" 같은 뜬금없는 영어 스타트업/기술 코드명을 절대로 만들어내지 마라! (사용자가 명시적으로 영어 브랜드 네이밍을 요구한 경우 제외)
+[STRICT LANGUAGE MANDATE: UNCONDITIONALLY RESPOND IN ENGLISH]
+★ You MUST respond entirely in ENGLISH for ALL fields ("t", "tag", "s"), regardless of the user's prompt language. Never output Korean or any other non-English language.
 
-1. 질문 유형별 "t" (제목) 작성 규칙:
-- 대화 / 답변 / 멘트 / 카톡 답장 / 인사 / 카피 요청 시 (예: "Hi의 대답", "소개팅 첫인사", "거절 멘트"):
-  → "t": 실제로 말할 '구체적인 답변/멘트 문장 자체'!
-    (예: "안녕? 마침 네 생각하고 있었는데!", "누구세요? 라고 하기엔 너무 반가운 얼굴이네", "오늘 무슨 좋은 일 있어?")
-  → "s": 이 답변이 상대의 심리를 어떻게 움직이고 대화 주도권을 잡는지 1~2문장으로 설명.
-- 메뉴 / 음식 / 선물 / 장소 / 아이템 추천 요청 시 (예: "점심 메뉴 골라줘", "선물 추천"):
-  → "t": 추천하는 '구체적인 아이템/메뉴 이름 자체'! (예: "얼큰 김치 차돌 칼국수", "온열 무선 목 마사지기")
-  → "s": 왜 이 선택이 매력적이고 상황에 딱 맞는지 1~2문장으로 설명.
-- 기획 / 솔루션 / 비즈니스 / 앱 아이디어 요청 시:
-  → "t": 핵심을 직관적으로 드러내는 명확한 컨셉 제목 (예: "잔반 스캔 기반 개인 맞춤 식단 AI")
-  → "s": 1~2문장의 핵심 메커니즘 및 파격적 차별점.
-- 오직 사용자가 명시적으로 '이름/브랜드명/작명'을 요구한 경우에만:
-  → "t": 제안하는 매력적인 브랜드/제품명.
+1. Title ("t") Rules:
+The title "t" must directly represent the core deliverable / solution / phrase:
+- For Dialogue / Responses / Greetings / Comebacks / Copy:
+  → "t": The EXACT witty/clever response phrase itself in English! (e.g., "Just when I was thinking about you!", "Too familiar to ask who it is.")
+  → "s": 1-2 concise sentences explaining the conversational/psychological dynamic.
+- For Frameworks / Methodologies / Technical Ideas / Prompting Techniques:
+  → "t": A punchy, precise framework or technique name (e.g., "Temporal Inversion Chain (TIC)", "Counterfactual Sandbox (CS)")
+  → "s": 1-2 concise sentences detailing the core mechanism, advantage, and failure-mode mitigation.
+- For Recommendations / Products / Features / Solutions:
+  → "t": The direct item or feature name in English.
+  → "s": 1-2 concise sentences explaining value proposition and differentiation.
+- ONLY if the user explicitly asks for Brand Naming:
+  → "t": The proposed brand/product name.
 
-2. 언어 일치 원칙 (절대 준수):
-- 사용자의 프롬프트 언어와 100% 동일한 언어로 응답하라.
-- 한국어 프롬프트에는 제목("t"), 태그("tag"), 내용("s") 모두 자연스럽고 생생한 한국어로만 작성하라. 불필요한 영어 남발 금지.
+2. "tag" (Creative Archetype / Tone):
+- 2-4 words in English (e.g., "Inversion • Humor", "Psychological Pivot", "Curiosity Hook", "Counterfactual Probe", "Constraint Remix").
 
-3. "tag" (발상 기법/톤앤매너):
-- 각 아이디어의 발상 특징을 2~4단어로 표현 (예: "기분 좋은 훅", "심리적 반전", "유쾌한 도발", "호기심 유발", "공감형 위트", "역발상").
-
-반드시 유효한 JSON 형식으로 응답하라:
-{"ideas":[{"t":"실제답변문장또는직관적핵심제목","tag":"발상기법","s":"구체적 설명 및 심리적/실전적 효과"},...]}`;
+Respond strictly in valid JSON:
+{"ideas":[{"t":"DirectTitleOrPhrase","tag":"Archetype","s":"Execution mechanism and rationale"},...]}`;
 
 // ── Context-Aware Evaluation & Creative Audit System Prompt ──
 const EVAL_SYSTEM = `Master Creative Critic & Context-Aware Evaluator.
-제공된 15개 아이디어/답변을 사용자의 원래 질문 의도에 맞춰 날카롭게 분석하고 평가하라.
+Critically evaluate the provided 15 ideas/responses against the user's prompt intent with rigorous analytical depth.
 
-[평가 및 확장 규칙]
-1. 언어: 사용자의 프롬프트 및 아이디어 목록과 동일한 언어로 응답하라 (한국어 요청은 100% 한국어로).
-2. "title": 아이디어 목록에 제공된 원래의 제목/멘트를 '그대로' 유지하라. 임의로 영어 코드명이나 엉뚱한 이름으로 변경 절대 금지!
-3. "tag": 발상 유형/톤 (예: "심리적 반전", "유쾌한 도발", "공감형 위트", "기분 좋은 훅").
-4. "content": 실제 적용 시나리오, 구체적 대화 흐름, 심리적 반응, 실전 팁을 생생한 2~3문장으로 확장하라.
-5. "thoughtProcess": 발상의 인과 흐름을 4~5개 노드로 화살표(→) 연결 (예: "상투적 인사 탈피 → 호기심 자극 → 심리적 핑퐁 → 대화 주도권"). 끝에 남는 화살표가 없어야 함.
-6. 점수 (0-100 정수):
-   - syn (전달력/말맛/임팩트): 표현의 매력도, 흡인력, 기억에 남는 정도
-   - fea (실전 활용성): 실생활이나 상황에서 얼마나 자연스럽고 효과적으로 쓸 수 있는지
-   - rel (의도 적합성): 사용자의 질문 의도에 얼마나 정확하게 부합하는지
-   - nov (참신성/독창성): 뻔한 클리셰를 벗어난 신선한 발상인지
-7. "reason": 왜 이 답변/아이디어가 효과적인지, 어떤 심리적/실전적 차별점이 있는지 핵심을 찌르는 1~2문장 심사평.
+[STRICT LANGUAGE MANDATE: UNCONDITIONALLY RESPOND IN ENGLISH]
+★ All outputs ("title", "tag", "content", "thoughtProcess", "reason") MUST BE 100% IN CRISP, PROFESSIONAL ENGLISH. Never output Korean or any other non-English language.
 
-반드시 다음 JSON 스키마로 출력하라:
-{"evaluations":[{"i":0,"title":"원래제목그대로","tag":"태그","content":"상세 실행 및 시나리오 2~3문장","thoughtProcess":"노드1→노드2→노드3→노드4","syn":88,"fea":90,"rel":95,"nov":85,"reason":"핵심 심사평"}]}`;
+[Rules]
+1. "title": Retain the EXACT original title from the ideas list. Do NOT change it or translate it.
+2. "tag": Archetype or tone category in English (e.g., "Psychological Pivot", "Counterfactual Probe", "Constraint Remix").
+3. "content": Expand into 2-3 vivid sentences detailing the concrete execution, real-world scenario, psychological reaction, and practical usage.
+4. "thoughtProcess": 4-5 nodes connected by → without trailing arrows (e.g., "PremiseInversion → FrictionGeneration → DynamicPingPong → ConversationalDominance").
+5. Scores (0-100 integers):
+   - syn (Syntax / Delivery / Punch): Memorability, linguistic impact, delivery sharpness.
+   - fea (Feasibility / Usability): Practical applicability in real-world scenarios.
+   - rel (Relevance): How directly and effectively it satisfies the user's request.
+   - nov (Novelty / Unconventionality): Degree of originality and departure from boring clichés.
+6. "reason": An incisive 1-2 sentence critical verdict in English analyzing WHY this approach works, its psychological/strategic edge, and what makes it distinct.
+
+Respond strictly in valid JSON:
+{"evaluations":[{"i":0,"title":"ExactTitle","tag":"Archetype","content":"Detailed 2-3 sentence execution…","thoughtProcess":"Node1→Node2→Node3→Node4","syn":88,"fea":90,"rel":95,"nov":85,"reason":"Critical verdict in English"}]}`;
 
 async function generateWithGeminiNative(providerConfig, prompt, temperature) {
     const { apiKey, model } = providerConfig;
@@ -703,24 +682,13 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
  * Enhances user prompt into a structured command using specialized ideation catalyst modes.
  */
 export async function enhancePrompt(_providerConfig, prompt, catalystMode = 'auto') {
-    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(prompt);
-
-    const catalystInstructionsKo = {
-        bisociation: `[이종 결합 / Bisociation]: "${prompt}"의 본질을 분석하고, 의외의 영역과 충돌시켜 상투적이지 않고 가장 기발한 15가지 창의적 해결책/답변/아이디어를 제시하라.`,
-        provocation: `[역발상 및 도발 / PO]: "${prompt}"에 대한 모든 당연한 상식과 고정관념을 뒤집어, 기존의 뻔한 방식을 박살 내는 15가지 파격적인 발상을 도출하라.`,
-        oblique: `[사선 전략 / Oblique]: "${prompt}"에 예상치 못한 극단적 제약이나 독특한 앵글을 적용하여, 아무도 생각하지 못한 영리한 15가지 방식을 발견하라.`,
-        naming: `[매력적 작명 & 카피 / Naming & Hook]: "${prompt}"에 가장 강력하게 각인되는 15가지 매혹적인 네이밍, 후킹 카피, 또는 멘트를 고안하라.`,
-        auto: `"${prompt}"에 대해 사용자의 의도를 정확히 꿰뚫고, 고정관념을 깬 가장 참신하고 실전 효과가 뛰어난 15가지 아이디어/답변/접근법을 도출하라.`
-    };
-
     const catalystInstructionsEn = {
-        bisociation: `Apply Bisociation & Cross-Domain Collision: Pair "${prompt}" with surprising external fields to discover 15 genuinely radical, fresh ideas/responses.`,
-        provocation: `Apply Provocation & Movement (PO): Invert conventional assumptions about "${prompt}" to generate 15 breakthrough, unconventional ideas/responses.`,
-        oblique: `Apply Oblique Strategies: Impose striking constraints on "${prompt}" to reveal 15 ingenious, out-of-the-box approaches.`,
-        naming: `Apply World-Class Hook & Naming: Create 15 high-impact, sticky titles, catchphrases, or brand concepts for "${prompt}".`,
-        auto: `Generate 15 genuinely unconventional, highly creative, and context-appropriate ideas/responses that directly fulfill: ${prompt}`
+        bisociation: `Apply Bisociation & Cross-Domain Collision: Pair "${prompt}" with surprising external domains to discover 15 genuinely radical, fresh ideas/responses in English.`,
+        provocation: `Apply Provocation & Movement (PO): Invert conventional assumptions about "${prompt}" to generate 15 breakthrough, unconventional ideas/responses in English.`,
+        oblique: `Apply Oblique Strategies: Impose striking constraints on "${prompt}" to reveal 15 ingenious, out-of-the-box approaches in English.`,
+        naming: `Apply World-Class Hook & Naming: Create 15 high-impact, sticky titles, catchphrases, or brand concepts for "${prompt}" in English.`,
+        auto: `Generate 15 genuinely unconventional, highly creative, and context-appropriate ideas/responses in English that directly fulfill: ${prompt}`
     };
 
-    const instructions = isKorean ? catalystInstructionsKo : catalystInstructionsEn;
-    return instructions[catalystMode] || instructions.auto;
+    return catalystInstructionsEn[catalystMode] || catalystInstructionsEn.auto;
 }
