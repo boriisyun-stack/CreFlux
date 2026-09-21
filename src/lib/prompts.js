@@ -123,10 +123,10 @@ const namingLabFocuses = [
 ];
 
 /**
- * Generates an extraordinarily diverse, high-concept innovation prompt across 8 distinct archetypes.
+ * Generates an extraordinarily diverse, high-concept innovation prompt across 11 distinct archetypes.
  */
 export function getRandomPrompt() {
-    const archetype = Math.floor(Math.random() * 8);
+    const archetype = Math.floor(Math.random() * 11);
 
     if (archetype === 0) {
         // Bisociation (Cross-Domain Collision)
@@ -174,6 +174,25 @@ export function getRandomPrompt() {
         const challenge = targetChallenges[Math.floor(Math.random() * targetChallenges.length)];
         const tech = exoticDomains[Math.floor(Math.random() * exoticDomains.length)];
         return `Sci-Fi 2050 Retrofit: Fast-forward 30 years into the future. How would post-scarcity society resolve [${challenge}] using advanced [${tech}]? Propose 15 commercially viable seeds of these future products today.`;
+    }
+
+    if (archetype === 7) {
+        // TIC (Temporal Inversion Chain, Reverse Causal Inference)
+        const challenge = targetChallenges[Math.floor(Math.random() * targetChallenges.length)];
+        return `Temporal Inversion Chain (TIC): Fix the ultimate breakthrough end-state for [${challenge}] as already solved. Backward-chain the immediate prerequisite steps to uncover 15 robust, non-obvious engineering solutions.`;
+    }
+
+    if (archetype === 8) {
+        // CS (Counterfactual Sandbox, Counterfactual Simulation)
+        const challenge = targetChallenges[Math.floor(Math.random() * targetChallenges.length)];
+        return `Counterfactual Sandbox (CS): Introduce an artificial fracture into the foundational rules of [${challenge}] ("What if rule A disappears? What if the default choice is inverted?"). Stress-test the system reaction to invent 15 radical, edge-case-proof breakthroughs.`;
+    }
+
+    if (archetype === 9) {
+        // CRL (Constraint Remix Loop, Dynamic Constraint Pacing)
+        const challenge = targetChallenges[Math.floor(Math.random() * targetChallenges.length)];
+        const rule = obliqueRules[Math.floor(Math.random() * obliqueRules.length)];
+        return `Constraint Remix Loop (CRL): Squeeze [${challenge}] under the extreme constraint: "${rule}". Alternate between extreme compression and rich expansion cycles to synthesize 15 high-density, breakthrough solutions.`;
     }
 
     // SCAMPER Extreme Redesign

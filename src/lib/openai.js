@@ -250,11 +250,11 @@ function generateDynamicThoughtProcess(title, _summary, index) {
     const cleanTitle = (title || '').replace(/[[\]()]/g, '').trim().split(/[\s-]/)[0] || 'Concept';
 
     const enPatterns = [
-        `${cleanTitle} → PremiseAnalysis → VariableMapping → ExecutionProtocol`,
-        `${cleanTitle} → CausalInference → BottleneckElimination → HighDensitySolution`,
-        `${cleanTitle} → HypothesisFraming → CounterfactualSimulation → BreakthroughRoute`,
-        `${cleanTitle} → MultiPerspectiveSwitch → CollisionValidation → Optimization`,
-        `${cleanTitle} → ConstraintOscillation → IterativeRefinement → DistinctNovelty`
+        `${cleanTitle} → FixedEndState → PrerequisiteBacktrack → CausalAnchor → ExecutionRoute`, // TIC (Temporal Inversion Chain)
+        `${cleanTitle} → PremiseFracture → CounterfactualStressTest → EdgeCaseExposure → NonLinearSolution`, // CS (Counterfactual Sandbox)
+        `${cleanTitle} → ExtremeConstraintSqueeze → ExpansionRemix → HighDensityRefinement → Deployment`, // CRL (Constraint Remix Loop)
+        `${cleanTitle} → CrossDomainCollision → ParadoxicalFriction → ProtocolDesign → Execution`,
+        `${cleanTitle} → ReverseEngineering → BottleneckElimination → CausalVerification → Optimization`
     ];
 
     return enPatterns[index % enPatterns.length];
@@ -337,7 +337,16 @@ Analyze the user's prompt and intent, breaking conventional clichés to generate
 [STRICT LANGUAGE MANDATE: UNCONDITIONALLY RESPOND IN ENGLISH]
 ★ You MUST respond entirely in ENGLISH for ALL fields ("t", "tag", "s"), regardless of the user's prompt language. Never output Korean or any other non-English language.
 
-1. Title ("t") Rules:
+1. CORE COGNITIVE FRAMEWORKS (MANDATORY OPERATIONAL ENGINES):
+Actively apply these three rigorous cognitive frameworks to generate breakthroughs without forward drift or shallow tropes:
+- TIC (Temporal Inversion Chain, Reverse Causal Inference):
+  Fix the ultimate target outcome / future state first. Work backward step-by-step: "What immediately preceded this state?", physically blocking forward drift and ensuring tight, prerequisite-anchored pathways.
+- CS (Counterfactual Sandbox, Counterfactual Simulation):
+  Inject deliberate, artificial fractures into core domain assumptions ("What if fundamental rule A ceases to exist?", "What if the default choice is inverted?"). Stress-test edge cases to uncover non-linear breakthrough routes.
+- CRL (Constraint Remix Loop, Dynamic Constraint Pacing):
+  Oscillate between intense parameter contraction (extreme constraints, forbidden defaults) to eliminate fluff, and expansion cycles that build out high-density, richly detailed solutions.
+
+2. Title ("t") Rules:
 The title "t" must directly represent the core deliverable / solution / phrase:
 - For Dialogue / Responses / Greetings / Comebacks / Copy:
   → "t": The EXACT witty/clever response phrase itself in English! (e.g., "Just when I was thinking about you!", "Too familiar to ask who it is.")
@@ -351,8 +360,8 @@ The title "t" must directly represent the core deliverable / solution / phrase:
 - ONLY if the user explicitly asks for Brand Naming:
   → "t": The proposed brand/product name.
 
-2. "tag" (Creative Archetype / Tone):
-- 2-4 words in English (e.g., "Inversion • Humor", "Psychological Pivot", "Curiosity Hook", "Counterfactual Probe", "Constraint Remix").
+3. "tag" (Creative Archetype / Tone):
+- 2-4 words in English (e.g., "TIC • Reverse Causality", "CS • Counterfactual Probe", "CRL • Parameter Juggle", "Inversion • Humor", "Psychological Pivot").
 
 Respond strictly in valid JSON:
 {"ideas":[{"t":"DirectTitleOrPhrase","tag":"Archetype","s":"Execution mechanism and rationale"},...]}`;
@@ -383,11 +392,16 @@ Critically evaluate the 15 ideas/responses against the user's prompt with ruthle
 - "syn" (Linguistic Precision, Delivery, Memorability, 0-100):
   * Punchiness, conceptual clarity, and lack of fluffy buzzwords.
 
+[Evaluation Criteria incorporating TIC, CS, CRL]
+- Causal Validity (TIC test): Does the backward causal chain hold up, or does it collapse into circular paradoxes?
+- Robustness Under Failure (CS test): How well does the concept handle edge cases, missing rules, or system stress?
+- Information Density (CRL test): Is the concept tightly packed with actionable mechanics rather than generic filler?
+
 [Output Fields]
 1. "title": Retain the EXACT original title from the ideas list. Do NOT alter it.
 2. "tag": Precise 2-4 word archetype/tone in English.
 3. "content": Expand into 2-3 vivid sentences detailing the concrete execution, engineering mechanics, and real-world failure points.
-4. "thoughtProcess": 4-5 nodes connected by → without trailing arrows (e.g. "BiophysicalConstraint → MolecularTagging → ScaffoldSynthesis → StructuralFailureCheck").
+4. "thoughtProcess": 4-5 nodes connected by → without trailing arrows (e.g. "FixedTargetState → PrerequisiteAnalysis → EdgeCaseStressTest → CausalAnchor").
 5. "reason": A sharp, honest, skeptical 1-2 sentence audit detailing the concept's fatal technical bottleneck or legitimate practical edge.
 
 Respond strictly in valid JSON:
@@ -697,11 +711,14 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
  */
 export async function enhancePrompt(_providerConfig, prompt, catalystMode = 'auto') {
     const catalystInstructionsEn = {
+        tic: `Apply Temporal Inversion Chain (TIC): Fix the target conclusion or future end-state of "${prompt}" first. Work backward step-by-step to identify immediate prerequisites, physically blocking forward drift and establishing an airtight causal path. Generate 15 high-impact, non-cliché ideas/responses in English.`,
+        cs: `Apply Counterfactual Sandbox (CS): Introduce artificial fractures into core premises of "${prompt}" ("What if rule X disappears? What if the opposite choice is forced?"). Stress-test system reactions and dredge up sharp edge cases to invent 15 radical, robust solutions in English.`,
+        crl: `Apply Constraint Remix Loop (CRL): Squeeze "${prompt}" through extreme constraints to shatter generic tropes, then expand and remix with high information density. Produce 15 breakthrough ideas/responses in English.`,
         bisociation: `Apply Bisociation & Cross-Domain Collision: Pair "${prompt}" with surprising external domains to discover 15 genuinely radical, fresh ideas/responses in English.`,
         provocation: `Apply Provocation & Movement (PO): Invert conventional assumptions about "${prompt}" to generate 15 breakthrough, unconventional ideas/responses in English.`,
         oblique: `Apply Oblique Strategies: Impose striking constraints on "${prompt}" to reveal 15 ingenious, out-of-the-box approaches in English.`,
         naming: `Apply World-Class Hook & Naming: Create 15 high-impact, sticky titles, catchphrases, or brand concepts for "${prompt}" in English.`,
-        auto: `Generate 15 genuinely unconventional, highly creative, and context-appropriate ideas/responses in English that directly fulfill: ${prompt}`
+        auto: `Synthesize Advanced Cognitive Engines [TIC (Temporal Inversion Chain), CS (Counterfactual Sandbox), CRL (Constraint Remix Loop)]: Lock the concrete end-state first to prevent forward drift, stress-test edge cases via counterfactual premise fractures, and apply tight constraint loops. Generate 15 genuinely unconventional, highly rigorous, and context-appropriate ideas/responses in English that directly fulfill: ${prompt}`
     };
 
     return catalystInstructionsEn[catalystMode] || catalystInstructionsEn.auto;
