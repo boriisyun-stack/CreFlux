@@ -192,34 +192,78 @@ function parseLLMJson(content) {
     throw new Error(`JSON parse error: Invalid model output. Snippet: ${text.substring(0, 160)}`);
 }
 
+export function sanitizeTitle(rawTitle) {
+    if (!rawTitle) return '';
+    let title = asString(rawTitle).trim();
+
+    // 1. If the title contains JSON snippet like '{"t":"Obsidian Maw"' or '"title":"Obsidian Maw"'
+    const jsonTitleMatch = title.match(/"(?:t|title)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+    if (jsonTitleMatch && jsonTitleMatch[1]) {
+        title = jsonTitleMatch[1].replace(/\\"/g, '"').trim();
+    }
+
+    // 2. Strip JSON framing leftovers: [{"ideas": ... or {"t": ...
+    title = title.replace(/^[[{,\s]*(?:"(?:ideas|evaluations)"\s*:\s*\[\s*)?(?:\{)?(?:"(?:t|title)"\s*:\s*)?/i, '');
+    title = title.replace(/[\]},\s]+$/, '');
+    title = title.replace(/^["']+|["']+$/g, '').trim();
+
+    // 3. If there is still a residual JSON property pattern like "s":"... or "tag":"...
+    if (title.includes('":') || title.includes('{"') || title.includes('"}')) {
+        const match = title.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/);
+        if (match && match[1]) {
+            title = match[1].replace(/\\"/g, '"').trim();
+        }
+    }
+
+    // 4. Final safety check: if it still has braces or array brackets at edges
+    if (/^[[{].*[\]}]$/.test(title)) {
+        title = title.replace(/[[\]{}"']/g, '').trim().slice(0, 60);
+    }
+
+    return title;
+}
+
 function normalizeIdeas(ideasLike) {
-    const rawIdeas = Array.isArray(ideasLike)
-        ? ideasLike
-        : Array.isArray(ideasLike?.ideas)
-            ? ideasLike.ideas
-            : [];
+    let rawIdeas = [];
+    if (Array.isArray(ideasLike)) {
+        if (ideasLike.length > 0 && Array.isArray(ideasLike[0]?.ideas)) {
+            rawIdeas = ideasLike.flatMap((item) => Array.isArray(item?.ideas) ? item.ideas : item);
+        } else {
+            rawIdeas = ideasLike;
+        }
+    } else if (Array.isArray(ideasLike?.ideas)) {
+        rawIdeas = ideasLike.ideas;
+    } else if (ideasLike && typeof ideasLike === 'object') {
+        const arr = Object.values(ideasLike).find(Array.isArray);
+        if (arr) rawIdeas = arr;
+    }
 
     return rawIdeas
         .map((item, index) => {
             if (typeof item === 'string') {
                 const summary = item.trim();
                 if (!summary) return null;
-                const title = summary.length > 60 ? `${summary.slice(0, 57)}...` : summary;
+                const title = sanitizeTitle(summary.length > 60 ? `${summary.slice(0, 57)}...` : summary);
                 return { t: title, s: summary, tag: 'Bisociation' };
             }
             if (!item || typeof item !== 'object') return null;
 
+            if (Array.isArray(item.ideas)) {
+                return normalizeIdeas(item.ideas);
+            }
+
             const summary = asString(item.s ?? item.summary ?? item.content ?? item.idea ?? item.description);
-            let title = asString(item.t ?? item.title ?? item.name ?? item.topic);
+            let title = sanitizeTitle(item.t ?? item.title ?? item.name ?? item.topic);
             const tag = asString(item.tag ?? item.archetype ?? item.method ?? 'Bisociation');
 
             if (!title && summary) {
-                title = summary.split(/[.!?]/)[0].slice(0, 60).trim();
+                title = sanitizeTitle(summary.split(/[.!?]/)[0].slice(0, 60).trim());
             }
             if (!title) title = `Idea ${index + 1}`;
 
             return { t: title, s: summary || title, tag };
         })
+        .flat()
         .filter(Boolean);
 }
 
@@ -273,7 +317,7 @@ function generateDynamicReasoning(title, _summary, index) {
 
 function fallbackEvaluations(ideasArray) {
     return normalizeIdeas(ideasArray).slice(0, 15).map((idea, index) => {
-        const title = idea.t || `Idea ${index + 1}`;
+        const title = sanitizeTitle(idea.t) || `Idea ${index + 1}`;
         const ideaText = idea.s || idea.t || '';
         const tag = idea.tag || DEFAULT_ARCHETYPES[index % DEFAULT_ARCHETYPES.length];
         const scores = generateHeuristicScores(title, ideaText, index);
@@ -293,6 +337,37 @@ function fallbackEvaluations(ideasArray) {
     });
 }
 
+function extractIdeasByRegex(text) {
+    const clean = asString(text);
+    if (!clean) return [];
+    const ideas = [];
+    const blockRegex = /\{[^{}]*"(?:t|title)"\s*:[^{}]*\}/g;
+    let match;
+    while ((match = blockRegex.exec(clean)) !== null) {
+        const block = match[0];
+        try {
+            const parsed = JSON.parse(block);
+            if (parsed && (parsed.t || parsed.title)) {
+                ideas.push(parsed);
+                continue;
+            }
+        } catch {
+            // Regex field fallback below
+        }
+        const tMatch = block.match(/"(?:t|title)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+        const sMatch = block.match(/"(?:s|summary|content|description)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+        const tagMatch = block.match(/"(?:tag|archetype|method)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+        if (tMatch && tMatch[1]) {
+            ideas.push({
+                t: sanitizeTitle(tMatch[1].replace(/\\"/g, '"')),
+                s: sMatch ? sMatch[1].replace(/\\"/g, '"') : tMatch[1],
+                tag: tagMatch ? tagMatch[1].replace(/\\"/g, '"') : 'Bisociation'
+            });
+        }
+    }
+    return ideas.length > 0 ? normalizeIdeas(ideas) : [];
+}
+
 function parseIdeasFromPlainText(text) {
     const clean = asString(text);
     if (!clean) return [];
@@ -302,7 +377,14 @@ function parseIdeasFromPlainText(text) {
         .map((line) => line.trim())
         .filter(Boolean)
         .map((line) => line.replace(/^[-*\d.)\s]+/, '').trim())
-        .filter((line) => line.length >= 8);
+        .filter((line) => {
+            if (line.length < 8) return false;
+            // Reject raw JSON wrapper lines
+            if (/^[[\]{}]+$/.test(line)) return false;
+            if (/^\{?\s*"(?:ideas|evaluations)"\s*:/i.test(line)) return false;
+            if (/^"(?:t|title|tag|s)"\s*:/i.test(line) && !line.includes(' - ')) return false;
+            return true;
+        });
 
     const seen = new Set();
     const ideas = [];
@@ -322,6 +404,9 @@ function parseIdeasFromPlainText(text) {
         } else if (line.length > 70) {
             title = `${line.slice(0, 67).trim()}...`;
         }
+
+        title = sanitizeTitle(title);
+        if (!title || title.length < 2) continue;
 
         ideas.push({ t: title, s: summary });
         if (ideas.length >= 15) break;
@@ -445,8 +530,11 @@ async function generateWithGeminiNative(providerConfig, prompt, temperature) {
         const ideas = normalizeIdeas(parsed.ideas ?? parsed);
         if (ideas.length > 0) return ideas;
     } catch {
-        // Fall back to plain text extraction below.
+        // Fall back to regex / plain text extraction below.
     }
+
+    const regexIdeas = extractIdeasByRegex(text);
+    if (regexIdeas.length > 0) return regexIdeas;
 
     const fallback = parseIdeasFromPlainText(text);
     if (fallback.length > 0) return fallback;
@@ -456,7 +544,7 @@ async function generateWithGeminiNative(providerConfig, prompt, temperature) {
 function compactIdeasForEval(ideasArray) {
     const normalized = normalizeIdeas(ideasArray);
     return normalized.map((idea, i) => {
-        const title = idea.t || idea.title || '';
+        const title = sanitizeTitle(idea.t || idea.title || '');
         const summary = idea.s || idea.content || '';
         return `${i}. [${title}] ${summary}`;
     }).join('\n');
@@ -490,9 +578,9 @@ function mapEvalResults(evaluations, ideasArray) {
             const idx = Number(item.i ?? item.index ?? item.id);
             const hasIndex = Number.isFinite(idx) && idx >= 0 && idx < ideaPool.length;
             const baseIdea = hasIndex ? ideaPool[Math.trunc(idx)] : ideaPool[index];
-            const baseTitle = asString(baseIdea?.t);
-            const evalTitle = asString(item.title ?? item.t);
-            const title = baseTitle || evalTitle || `Idea ${index + 1}`;
+            const baseTitle = sanitizeTitle(baseIdea?.t);
+            const evalTitle = sanitizeTitle(item.title ?? item.t);
+            const title = sanitizeTitle(baseTitle || evalTitle) || `Idea ${index + 1}`;
             const idea = asString(item.content ?? item.idea ?? item.description ?? baseIdea?.s ?? title);
             const thoughtProcess = asString(item.thoughtProcess ?? item.chain ?? item.thought ?? item.conceptTrail ?? generateDynamicThoughtProcess(title, idea, index));
 
@@ -637,8 +725,11 @@ export async function generateIdeas(providerConfig, prompt, temperature = 2.0) {
             const ideas = normalizeIdeas(parsed.ideas ?? parsed);
             if (ideas.length > 0) return ideas;
         } catch {
-            // Fall back to plain-text extraction below.
+            // Fall back to regex / plain text extraction below.
         }
+
+        const regexIdeas = extractIdeasByRegex(rawContent);
+        if (regexIdeas.length > 0) return regexIdeas;
 
         const fallback = parseIdeasFromPlainText(rawContent);
         if (fallback.length > 0) return fallback;

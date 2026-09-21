@@ -12,18 +12,20 @@ export const {
 } = createStitches({
     theme: {
         colors: {
-            primary: '#FF006E',    // Vibrant Pink
-            secondary: '#3A86FF',  // Vibrant Blue
-            background: '#F8F9FA', // Light grey/white base
-            surface: 'rgba(255, 255, 255, 0.65)', // Light glass surface
-            surfaceHover: 'rgba(255, 255, 255, 0.85)',
-            border: 'rgba(131, 56, 236, 0.2)', // Border with hint of purple (#8338EC)
-            text: '#1A202C',
-            textMuted: '#4A5568',
-            success: '#10b981',
-            warning: '#f59e0b',
-            error: '#ef4444',
-            errorBg: 'rgba(239, 68, 68, 0.1)',
+            primary: '#FF006E',    // Vibrant Pink / Neon Rose
+            secondary: '#3A86FF',  // Vibrant Blue / Electric Indigo
+            accent: '#8338EC',     // Electric Violet
+            background: '#F8F9FA', // Clean light base
+            surface: 'rgba(255, 255, 255, 0.75)', // Glass surface
+            surfaceHover: 'rgba(255, 255, 255, 0.92)',
+            border: 'rgba(131, 56, 236, 0.18)', // Harmonious purple border (#8338EC)
+            borderHover: 'rgba(58, 134, 255, 0.35)',
+            text: '#111827',       // Deep rich charcoal for crisp readability
+            textMuted: '#64748B',  // Slate gray (clean modern muted)
+            success: '#10B981',    // Emerald
+            warning: '#F59E0B',    // Amber
+            error: '#EF4444',      // Red
+            errorBg: 'rgba(239, 68, 68, 0.08)',
         },
         space: {
             1: '0.25rem',
@@ -79,7 +81,7 @@ export const globalStyles = globalCss({
         display: 'flex',
         justifyContent: 'center',
         padding: '0',
-        backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(255, 0, 110, 0.15) 0%, transparent 50%), radial-gradient(circle at 85% 30%, rgba(58, 134, 255, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 80%, rgba(255, 190, 11, 0.15) 0%, transparent 50%)',
+        backgroundImage: 'radial-gradient(circle at 15% 35%, rgba(255, 0, 110, 0.12) 0%, transparent 45%), radial-gradient(circle at 85% 25%, rgba(58, 134, 255, 0.14) 0%, transparent 50%), radial-gradient(circle at 50% 85%, rgba(131, 56, 236, 0.10) 0%, transparent 50%)',
         backgroundAttachment: 'fixed',
     },
     'h1, h2, h3, h4': {
@@ -100,7 +102,7 @@ export const globalStyles = globalCss({
         backgroundClip: 'content-box',
     },
     '::-webkit-scrollbar-thumb:hover': {
-        background: 'linear-gradient(135deg, #FF006E, #3A86FF)',
+        background: 'linear-gradient(135deg, #FF006E, #8338EC, #3A86FF)',
         borderRadius: '9999px',
         border: '2px solid transparent',
         backgroundClip: 'content-box',

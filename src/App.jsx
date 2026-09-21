@@ -331,7 +331,7 @@ const IdeasList = styled('section', {
 const IdeaTitle = styled('h3', {
   fontSize: '$5',
   fontWeight: 800,
-  color: '$primary',
+  color: '$text',
   marginBottom: '$1', // tighter gap to the thought chain
   marginTop: 0,
   paddingRight: '120px', // More space for copy and translate buttons
@@ -345,11 +345,11 @@ const TagBadge = styled('span', {
   fontSize: '0.72rem',
   fontWeight: 700,
   letterSpacing: '0.4px',
-  padding: '3px 8px',
+  padding: '3px 9px',
   borderRadius: '$round',
-  background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.08), rgba(58, 134, 255, 0.12))',
-  color: '$primary',
-  border: '1px solid rgba(255, 0, 110, 0.2)',
+  background: 'linear-gradient(135deg, rgba(131, 56, 236, 0.08), rgba(58, 134, 255, 0.10))',
+  color: '$accent',
+  border: '1px solid rgba(131, 56, 236, 0.22)',
   marginBottom: '$2',
   alignSelf: 'flex-start',
   width: 'fit-content',
@@ -644,11 +644,12 @@ const SliderHeader = styled('div', {
 });
 
 const SliderValue = styled('span', {
-  fontSize: '0.9rem',
-  fontWeight: '600',
+  fontSize: '0.85rem',
+  fontWeight: '700',
   color: '$primary',
-  background: 'rgba(52, 64, 85, 0.1)',
-  padding: '2px 8px',
+  background: 'rgba(255, 0, 110, 0.08)',
+  border: '1px solid rgba(255, 0, 110, 0.2)',
+  padding: '2px 10px',
   borderRadius: '$round',
 });
 
@@ -657,9 +658,9 @@ const SliderInput = styled('input', {
   width: '100%',
   height: '6px',
   borderRadius: '$round',
-  background: 'linear-gradient(90deg, #888098, #FF006E)',
+  background: 'linear-gradient(90deg, #3A86FF, #8338EC, #FF006E)',
   outline: 'none',
-  opacity: '0.8',
+  opacity: '0.9',
   transition: 'opacity .2s',
   '&:hover': {
     opacity: '1',
@@ -667,22 +668,22 @@ const SliderInput = styled('input', {
   '&::-webkit-slider-thumb': {
     WebkitAppearance: 'none',
     appearance: 'none',
-    width: '20px',
-    height: '20px',
+    width: '18px',
+    height: '18px',
     borderRadius: '$round',
     background: 'white',
     border: '2px solid $primary',
     cursor: 'pointer',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+    boxShadow: '0 2px 6px rgba(255, 0, 110, 0.3)',
   },
   '&::-moz-range-thumb': {
-    width: '20px',
-    height: '20px',
+    width: '18px',
+    height: '18px',
     borderRadius: '$round',
     background: 'white',
     border: '2px solid $primary',
     cursor: 'pointer',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+    boxShadow: '0 2px 6px rgba(255, 0, 110, 0.3)',
   }
 });
 
@@ -750,10 +751,14 @@ const ProgressBarFill = styled('div', {
 
 const Reasoning = styled('div', {
   marginTop: '$3',
+  padding: '$3',
+  background: 'rgba(131, 56, 236, 0.04)',
+  border: '1px solid rgba(131, 56, 236, 0.12)',
+  borderRadius: '$3',
   fontSize: '$2',
   color: '$textMuted',
+  lineHeight: 1.5,
   fontStyle: 'italic',
-  textAlign: 'center',
 });
 
 // --- Results Toolbar & Empty State Styles ---
@@ -789,9 +794,9 @@ const ResultsCountBadge = styled('div', {
   fontSize: '0.85rem',
   fontWeight: 700,
   color: '$primary',
-  background: 'rgba(255, 0, 110, 0.08)',
-  border: '1px solid rgba(255, 0, 110, 0.2)',
-  padding: '0.35rem 0.8rem',
+  background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.08), rgba(131, 56, 236, 0.08))',
+  border: '1px solid rgba(131, 56, 236, 0.2)',
+  padding: '0.35rem 0.85rem',
   borderRadius: '$round',
 });
 
@@ -978,18 +983,18 @@ const ModalTextarea = styled('textarea', {
 
 const VariableTag = styled('code', {
   display: 'inline-block',
-  background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.1), rgba(58, 134, 255, 0.1))',
-  color: '$primary',
+  background: 'linear-gradient(135deg, rgba(131, 56, 236, 0.08), rgba(58, 134, 255, 0.10))',
+  color: '$accent',
   padding: '2px 8px',
   borderRadius: '$2',
   fontSize: '0.75rem',
   fontWeight: 600,
   fontFamily: 'monospace',
-  border: '1px solid rgba(255, 0, 110, 0.15)',
+  border: '1px solid rgba(131, 56, 236, 0.2)',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
   '&:hover': {
-    background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.2), rgba(58, 134, 255, 0.2))',
+    background: 'linear-gradient(135deg, rgba(131, 56, 236, 0.16), rgba(58, 134, 255, 0.18))',
     transform: 'scale(1.05)',
   },
 });
@@ -1075,7 +1080,7 @@ const ErrorMessage = styled('div', {
   padding: '$3 $4',
   background: '$errorBg',
   border: '1px solid $error',
-  color: '#ff4d6d',
+  color: '$error',
   borderRadius: '$round',
   fontSize: '0.95rem',
   display: 'flex',
@@ -1496,7 +1501,7 @@ export default function App() {
                               value={sliderIndex}
                               onChange={(e) => handleSliderChange(parseInt(e.target.value, 10))}
                             />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888098', fontSize: '0.75rem', marginTop: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--colors-textMuted)', fontSize: '0.75rem', marginTop: '4px' }}>
                               <span>Precise</span>
                               <span>Creative</span>
                             </div>
@@ -1668,7 +1673,7 @@ export default function App() {
                             title="Copy idea"
                             aria-label="Copy idea"
                           >
-                            {copiedId === index ? <Check size={16} color="#4ade80" /> : <Copy size={16} />}
+                            {copiedId === index ? <Check size={16} color="var(--colors-success)" /> : <Copy size={16} />}
                           </CardActionButton>
                         </CardActions>
                         {item.tag && <TagBadge>🏷️ {item.tag}</TagBadge>}
@@ -1681,10 +1686,10 @@ export default function App() {
                               .filter(Boolean)
                               .map((node, i, arr) => (
                                 <React.Fragment key={i}>
-                                  <span style={{ padding: '2px 6px', background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
+                                  <span style={{ padding: '2px 8px', background: 'rgba(131, 56, 236, 0.06)', border: '1px solid rgba(131, 56, 236, 0.12)', borderRadius: '6px', color: 'var(--colors-text)' }}>
                                     {node}
                                   </span>
-                                  {i < arr.length - 1 && <span style={{ color: 'var(--colors-secondary)' }}>→</span>}
+                                  {i < arr.length - 1 && <span style={{ color: 'var(--colors-secondary)', fontWeight: 700 }}>→</span>}
                                 </React.Fragment>
                               ))}
                           </ThoughtChain>
@@ -1762,7 +1767,7 @@ export default function App() {
 
       {toast && (
         <ToastContainer>
-          <Sparkles size={16} color="#4ade80" />
+          <Sparkles size={16} color="var(--colors-secondary)" />
           <span>{toast}</span>
         </ToastContainer>
       )}
@@ -1787,10 +1792,10 @@ export default function App() {
                     style={{
                       padding: '0.35rem 0.75rem',
                       borderRadius: '999px',
-                      border: copyFormat === p.format ? '2px solid #FF006E' : '1px solid var(--colors-border)',
-                      background: copyFormat === p.format ? 'rgba(255, 0, 110, 0.1)' : 'transparent',
-                      color: copyFormat === p.format ? '#FF006E' : 'var(--colors-textMuted)',
-                      fontWeight: copyFormat === p.format ? 700 : 400,
+                      border: copyFormat === p.format ? '2px solid var(--colors-primary)' : '1px solid var(--colors-border)',
+                      background: copyFormat === p.format ? 'rgba(255, 0, 110, 0.08)' : 'transparent',
+                      color: copyFormat === p.format ? 'var(--colors-primary)' : 'var(--colors-textMuted)',
+                      fontWeight: copyFormat === p.format ? 700 : 500,
                       fontSize: '0.8rem',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
@@ -1885,7 +1890,7 @@ export default function App() {
                         console.warn('Failed to persist sound volume:', err);
                       }
                     }}
-                    style={{ width: '100%', accentColor: '#FF006E' }}
+                    style={{ width: '100%', accentColor: 'var(--colors-primary, #FF006E)' }}
                   />
                   <p style={{ fontSize: '0.7rem', color: 'var(--colors-textMuted)', marginTop: '0.4rem' }}>
                     A 'ding' sound (High F#) plays when all ideas are generated.
