@@ -480,13 +480,43 @@ function buildFallbackResults(rawIdeas = []) {
     }
     const h = Math.abs(hash);
 
-    const thoughtProcess = isKorean
-      ? `${(title.split(/[\s-]/)[0] || '발상')} → 고정관념탈피 → 심리적접근 → 핵심실행`
-      : `${(title.split(/[\s-]/)[0] || 'Concept')} → BreakCliché → PsychologicalAngle → Execution`;
+    const cleanTitle = (title || '').replace(/[[\]()]/g, '').trim().split(/[\s-]/)[0] || (isKorean ? '발상' : 'Concept');
 
-    const reasoning = isKorean
-      ? '상투적인 틀을 벗어나 실전 활용성과 심리적 임팩트를 고루 갖춘 참신한 접근입니다.'
-      : 'Breaks conventional clichés with high practical applicability and psychological resonance.';
+    const koPatterns = [
+      `${cleanTitle} → 전제 조건 분석 → 잠재 변수 도출 → 실전 실행 프로토콜`,
+      `${cleanTitle} → 인과 관계 역추론 → 병목 지점 해소 → 고밀도 해법 도출`,
+      `${cleanTitle} → 핵심 가설 설정 → 반사실적 시뮬레이션 → 돌파구 합성`,
+      `${cleanTitle} → 관점 다층 전환 → 다차원 충돌 검증 → 실행 최적화`,
+      `${cleanTitle} → 제약 완급 조절 → 수축·이완 반복 → 차별화된 결과 도출`
+    ];
+
+    const enPatterns = [
+      `${cleanTitle} → PremiseAnalysis → VariableMapping → ExecutionProtocol`,
+      `${cleanTitle} → CausalInference → BottleneckElimination → HighDensitySolution`,
+      `${cleanTitle} → HypothesisFraming → CounterfactualSimulation → BreakthroughRoute`,
+      `${cleanTitle} → MultiPerspectiveSwitch → CollisionValidation → Optimization`,
+      `${cleanTitle} → ConstraintOscillation → IterativeRefinement → DistinctNovelty`
+    ];
+
+    const thoughtProcess = (isKorean ? koPatterns : enPatterns)[index % koPatterns.length];
+
+    const koReasons = [
+      `'${title}'의 핵심 메커니즘을 명확히 정의하고, 직관적인 사용성과 창의적 차별화를 동시에 확보한 전략적 접근입니다.`,
+      `기존의 단선적 접근법에서 벗어나 예외 케이스와 실전 효용성을 날카롭게 파고드는 구성입니다.`,
+      `목표 도달을 위한 논리적 인과가 촘촘하며, 실전에 즉시 도입 가능한 명확한 프로세스를 제시합니다.`,
+      `도메인의 숨은 변수를 포착하여 통상적인 한계를 뛰어넘는 신선한 통찰과 문제 해결력을 보여줍니다.`,
+      `제약 조건과 유연성의 균형을 효과적으로 유지하여 높은 완성도와 변별력을 이끌어냅니다.`
+    ];
+
+    const enReasons = [
+      `Defines the core mechanism of '${title}' with precision, balancing intuitive usability and creative novelty.`,
+      `Departs from linear conventions to address edge cases and practical efficacy with sharp contextual insight.`,
+      `Establishes a tight causal chain toward the target outcome with an immediately actionable execution path.`,
+      `Captures latent domain dynamics to overcome conventional limitations with fresh problem-solving power.`,
+      `Effectively balances strict constraints and adaptive flexibility to deliver high-density results.`
+    ];
+
+    const reasoning = (isKorean ? koReasons : enReasons)[index % koReasons.length];
 
     return {
       title,

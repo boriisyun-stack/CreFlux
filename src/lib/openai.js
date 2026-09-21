@@ -246,14 +246,51 @@ const DEFAULT_ARCHETYPES = [
     '파격적 위트'
 ];
 
-function fallbackEvaluations(ideasArray) {
-    const verdictPhrases = [
-        '기존의 상투적인 방식을 깨뜨리는 역발상과 높은 실전 적용성을 갖춘 참신한 접근입니다.',
-        '청자의 호기심과 반응을 즉각적으로 이끌어내는 심리적 매력과 독창적인 차별성이 돋보입니다.',
-        '직관적이면서도 군더더기 없는 전개로 상황에 즉시 활용하기 적합한 아이디어입니다.',
-        '클리셰를 비틀어 대화의 주도권과 강렬한 인상을 남기는 뛰어난 표현력을 지니고 있습니다.'
+function generateDynamicThoughtProcess(title, summary, index) {
+    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(`${title} ${summary}`);
+    const cleanTitle = (title || '').replace(/[[\]()]/g, '').trim().split(/[\s-]/)[0] || (isKorean ? '발상' : 'Concept');
+
+    const koPatterns = [
+        `${cleanTitle} → 전제 조건 분석 → 잠재 변수 도출 → 실전 실행 프로토콜`,
+        `${cleanTitle} → 인과 관계 역추론 → 병목 지점 해소 → 고밀도 해법 도출`,
+        `${cleanTitle} → 핵심 가설 설정 → 반사실적 시뮬레이션 → 돌파구 합성`,
+        `${cleanTitle} → 관점 다층 전환 → 다차원 충돌 검증 → 실행 최적화`,
+        `${cleanTitle} → 제약 완급 조절 → 수축·이완 반복 → 차별화된 결과 도출`
     ];
 
+    const enPatterns = [
+        `${cleanTitle} → PremiseAnalysis → VariableMapping → ExecutionProtocol`,
+        `${cleanTitle} → CausalInference → BottleneckElimination → HighDensitySolution`,
+        `${cleanTitle} → HypothesisFraming → CounterfactualSimulation → BreakthroughRoute`,
+        `${cleanTitle} → MultiPerspectiveSwitch → CollisionValidation → Optimization`,
+        `${cleanTitle} → ConstraintOscillation → IterativeRefinement → DistinctNovelty`
+    ];
+
+    const patterns = isKorean ? koPatterns : enPatterns;
+    return patterns[index % patterns.length];
+}
+
+function generateDynamicReasoning(title, summary, index) {
+    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(`${title} ${summary}`);
+    const koReasons = [
+        `'${title}'의 핵심 메커니즘을 명확히 정의하고, 직관적인 사용성과 창의적 차별화를 동시에 확보한 전략적 접근입니다.`,
+        `기존의 단선적 접근법에서 벗어나 예외 케이스와 실전 효용성을 날카롭게 파고드는 구성입니다.`,
+        `목표 도달을 위한 논리적 인과가 촘촘하며, 실전에 즉시 도입 가능한 명확한 프로세스를 제시합니다.`,
+        `도메인의 숨은 변수를 포착하여 통상적인 한계를 뛰어넘는 신선한 통찰과 문제 해결력을 보여줍니다.`,
+        `제약 조건과 유연성의 균형을 효과적으로 유지하여 높은 완성도와 변별력을 이끌어냅니다.`
+    ];
+    const enReasons = [
+        `Defines the core mechanism of '${title}' with precision, balancing intuitive usability and creative novelty.`,
+        `Departs from linear conventions to address edge cases and practical efficacy with sharp contextual insight.`,
+        `Establishes a tight causal chain toward the target outcome with an immediately actionable execution path.`,
+        `Captures latent domain dynamics to overcome conventional limitations with fresh problem-solving power.`,
+        `Effectively balances strict constraints and adaptive flexibility to deliver high-density results.`
+    ];
+    const reasons = isKorean ? koReasons : enReasons;
+    return reasons[index % reasons.length];
+}
+
+function fallbackEvaluations(ideasArray) {
     return normalizeIdeas(ideasArray).slice(0, 15).map((idea, index) => {
         const title = idea.t || `Idea ${index + 1}`;
         const ideaText = idea.s || idea.t || '';
@@ -263,13 +300,13 @@ function fallbackEvaluations(ideasArray) {
             title,
             tag,
             idea: ideaText,
-            thoughtProcess: `${(title.split(/[\s-]/)[0] || '발상')}→고정관념탈피→심리적접근→핵심실행`,
+            thoughtProcess: generateDynamicThoughtProcess(title, ideaText, index),
             evaluation: {
                 syntax: scores.syntax,
                 feasibility: scores.feasibility,
                 relevance: scores.relevance,
                 novelty: scores.novelty,
-                reasoning: verdictPhrases[index % verdictPhrases.length],
+                reasoning: generateDynamicReasoning(title, ideaText, index),
             },
         };
     });
@@ -450,7 +487,7 @@ function mapEvalResults(evaluations, ideasArray) {
             const evalTitle = asString(item.title ?? item.t);
             const title = baseTitle || evalTitle || `Idea ${index + 1}`;
             const idea = asString(item.content ?? item.idea ?? item.description ?? baseIdea?.s ?? title);
-            const thoughtProcess = asString(item.thoughtProcess ?? item.chain ?? item.thought ?? item.conceptTrail ?? `${(title.split(/[\s-]/)[0] || '발상')}→고정관념탈피→심리적접근→핵심실행`);
+            const thoughtProcess = asString(item.thoughtProcess ?? item.chain ?? item.thought ?? item.conceptTrail ?? generateDynamicThoughtProcess(title, idea, index));
 
             const scoresObj = item.scores || item.evaluation || item.metrics || item.score || item;
             const defaultScores = generateHeuristicScores(title, idea, index);
@@ -465,8 +502,8 @@ function mapEvalResults(evaluations, ideasArray) {
             const relevance = rawRel !== undefined && rawRel !== null ? clampScore(rawRel) : defaultScores.relevance;
             const novelty = rawNov !== undefined && rawNov !== null ? clampScore(rawNov) : defaultScores.novelty;
 
-            const tag = asString(item.tag ?? item.archetype ?? item.method ?? baseIdea?.tag ?? '역발상');
-            const reasoning = asString(item.reason ?? item.reasoning ?? item.rationale ?? '상투적인 틀을 벗어나 실전 활용성과 전달력을 고루 갖춘 제안입니다.');
+            const tag = asString(item.tag ?? item.archetype ?? item.method ?? baseIdea?.tag ?? '창의적 발상');
+            const reasoning = asString(item.reason ?? item.reasoning ?? item.rationale ?? generateDynamicReasoning(title, idea, index));
 
             return {
                 title,
@@ -497,8 +534,9 @@ async function evaluateIdeasBatchWithGeminiNative(providerConfig, prompt, ideasA
         contents: [{ parts: [{ text: `Prompt: ${asString(prompt)}\n\nIdeas to evaluate:\n${compactList}\n\nRespond with valid JSON containing all evaluations.` }] }],
         generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 4096,
+            maxOutputTokens: 8192,
             responseMimeType: "application/json",
+            thinkingConfig: { thinkingBudget: 0 },
         },
     };
     const response = await fetch(url, {
@@ -572,14 +610,16 @@ export async function generateIdeas(providerConfig, prompt, temperature = 2.0) {
                 ? { max_completion_tokens: 4096 }
                 : { max_tokens: 4096, temperature }),
         };
-        if (provider === 'groq') {
+        const isR1Groq = provider === 'groq' && /deepseek.*r1/i.test(resolvedModel);
+        if (isR1Groq) {
             payload.reasoning_format = 'parsed';
         }
         if (provider !== 'groq' && !isReasoningModel && !resolvedModel.toLowerCase().includes('gpt-oss')) {
             payload.presence_penalty = 2.0;
             payload.frequency_penalty = 2.0;
         }
-        if (provider !== 'custom') {
+        const supportsJsonObject = provider !== 'custom' && !(provider === 'openrouter' && /claude/i.test(resolvedModel));
+        if (supportsJsonObject) {
             payload.response_format = { type: 'json_object' };
         }
 
@@ -634,13 +674,15 @@ export async function evaluateIdeasBatch(providerConfig, prompt, ideasArray) {
                 { role: 'user', content: `Prompt: ${prompt}\n\nIdeas to evaluate:\n${compactList}\n\nRespond with valid JSON containing the evaluations array.` }
             ],
             ...(isReasoningModel
-                ? { max_completion_tokens: 4096 }
-                : { max_tokens: 4096, temperature: 0.1 }),
+                ? { max_completion_tokens: 8192 }
+                : { max_tokens: 8192, temperature: 0.1 }),
         };
-        if (provider === 'groq') {
+        const isR1Groq = provider === 'groq' && /deepseek.*r1/i.test(resolvedModel);
+        if (isR1Groq) {
             payload.reasoning_format = 'parsed';
         }
-        if (provider !== 'custom') {
+        const supportsJsonObject = provider !== 'custom' && !(provider === 'openrouter' && /claude/i.test(resolvedModel));
+        if (supportsJsonObject) {
             payload.response_format = { type: 'json_object' };
         }
 
